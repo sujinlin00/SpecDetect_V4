@@ -18,13 +18,11 @@ try:
 except NameError:
     _spec_dir = _os.path.abspath('.')
 
-# Read version from version.py
-_sys.path.insert(0, _os.path.abspath(_os.path.join(_spec_dir, '..', 'src')))
-try:
-    from version import ATOM_VERSION
-    _ATOM_VERSION = str(ATOM_VERSION)
-except Exception:
-    _ATOM_VERSION = '1.5.7'
+# Read version from workspace root get_version.py (唯一版本源)
+_workspace_root = _os.path.abspath(_os.path.join(_spec_dir, '..', '..', '..'))
+_sys.path.insert(0, _workspace_root)
+from get_version import ATOM_VERSION
+_ATOM_VERSION = str(ATOM_VERSION)
 
 # runtime dir is at project root (parent of packaging)
 _runtime_dir = os.path.join(_spec_dir, '..', 'runtime')
@@ -46,6 +44,7 @@ a = Analysis(
     datas=[
         ('../config', 'config'),
         ('../src/preset/templates', 'preset/templates'),
+        ('../../../get_version.py', '.'),
     ],
     hiddenimports=[
         'atom.service',
@@ -54,6 +53,7 @@ a = Analysis(
         'atom.session_manager',
         'atom.soap.server',
         'atom.config',
+        'atom.device_status',
         'atom.validator',
         'atom.fscan_processor',
         'atom.stream.frame',

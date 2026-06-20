@@ -8,9 +8,18 @@ Atom 服务主类
 import socket
 import threading
 import time
+import os as _os
+import sys as _sys
+_meipass = getattr(_sys, '_MEIPASS', None)
+if _meipass:
+    _sys.path.insert(0, _meipass)
+else:
+    _ws_root = _os.path.abspath(_os.path.join(_os.path.dirname(__file__), '..', '..', '..', '..'))
+    _sys.path.insert(0, _ws_root)
+from get_version import ATOM_VERSION
+
 from typing import Optional
 
-import version
 from atom.config import load_config, get_config
 from atom.session_manager import SessionManager
 from atom.session import SessionState, StreamSession, BandCollector
@@ -26,6 +35,7 @@ from atom.stream.frame import (
 )
 from atom.validator import validate_bd_type, validate_band_structure, validate_frame_params
 from preset.device_preset import DevicePresetManager
+from atom.device_status import DeviceStatusProvider
 from log.logger import Logger, log, info, debug, error, LogTag
 
 
@@ -54,14 +64,19 @@ class AtomService:
         # 初始化设备预置管理器
         self.preset_manager = DevicePresetManager()
 
+        # 初始化设备状态提供者
+        self._device_status = DeviceStatusProvider(
+            self.preset_manager, self.config, self.session_manager
+        )
+
         # 初始化服务器
         self.soap_server = SOAPServer(
-            host=self.config.atom_host,
+            host=self.config.soap_host,
             port=self.config.soap_port
         )
 
         self.streamsrc_server = StreamSrcServer(
-            host=self.config.atom_host,
+            host=self.config.soap_host,
             port=self.config.streamsrc_port
         )
 
@@ -76,7 +91,7 @@ class AtomService:
         if self._running:
             return
 
-        info(f"Atom 服务启动 v{version.ATOM_VERSION}", LogTag.ATOM)
+        info(f"Atom 服务启动 v{ATOM_VERSION}", LogTag.ATOM)
 
         # 启动会话清理线程
         self.session_manager.start_cleanup_thread()
@@ -103,8 +118,8 @@ class AtomService:
         self._running = True
 
         info(f"Atom 服务已启动", LogTag.ATOM)
-        info(f"  SOAP: {self.config.atom_host}:{self.config.soap_port}", LogTag.ATOM)
-        info(f"  streamsrc: {self.config.atom_host}:{self.config.streamsrc_port}", LogTag.ATOM)
+        info(f"  SOAP: {self.config.soap_host}:{self.config.soap_port}", LogTag.ATOM)
+        info(f"  streamsrc: {self.config.soap_host}:{self.config.streamsrc_port}", LogTag.ATOM)
 
     def stop(self):
         """停止服务"""
@@ -147,8 +162,8 @@ class AtomService:
             equid = self.preset_manager.get_equid_for_mfid(mfid)
 
         # appid/userid: 优先从 params 获取，否则用配置
-        appid = params.get('appid', '') or self.config.soap_appid
-        userid = params.get('userid', '') or self.config.soap_userid
+        appid = params.get('appid', '') or self.config.def_appid
+        userid = params.get('userid', '') or self.config.def_userid
 
         # priority: 从请求中提取，默认 0
         priority = int(params.get('priority', 0))
@@ -348,14 +363,18 @@ class AtomService:
         info(f"Sink 模式启动数据流: taskid={session.taskid}", LogTag.STREAM)
 
         # 连接 RMCP 设备
+        rmcp_host, rmcp_port = self.config.get_rmcp_target(
+            session.fscan_params.get('mfid', ''),
+            session.fscan_params.get('equid', '')
+        )
         rmcp_client = RMCPClient(
-            host=self.config.device_host,
-            port=self.config.device_port,
+            host=rmcp_host,
+            port=rmcp_port,
             timeout=10
         )
 
         if not rmcp_client.connect():
-            error(f"连接设备失败: {self.config.device_host}:{self.config.device_port}", LogTag.RMCP)
+            error(f"连接设备失败: {rmcp_host}:{rmcp_port}", LogTag.RMCP)
             session.close_all()
             return
 
@@ -366,7 +385,7 @@ class AtomService:
             return
 
         session.attach_target(rmcp_client)
-        info(f"已连接设备: {self.config.device_host}:{self.config.device_port}", LogTag.RMCP)
+        info(f"已连接设备: {rmcp_host}:{rmcp_port}", LogTag.RMCP)
 
         # 构建 RMCP 请求
         xml_content = self._build_rmcp_request(session.fscan_params)
@@ -979,8 +998,8 @@ class AtomService:
         # 注入动态字段
         devinfo_xml = DevicePresetManager.inject_fields(
             devinfo_xml,
-            appid=self.config.soap_appid,
-            userid=self.config.soap_userid,
+            appid=self.config.def_appid,
+            userid=self.config.def_userid,
             taskid=taskid
         )
 
@@ -991,97 +1010,36 @@ class AtomService:
         """处理 B_QueryFaciDevStat - 查询设备状态"""
         raw_body = request.get('body', b'').decode('utf-8', errors='replace')
 
-        # 提取 mfid 和 equid
-        import re
-        mfid_match = re.search(r'<[^>]*:mfid[^>]*>([^<]+)</[^>]*:mfid>', raw_body, re.IGNORECASE)
-        equid_match = re.search(r'<[^>]*:equid[^>]*>([^<]+)</[^>]*:equid>', raw_body, re.IGNORECASE)
-
-        mfid = mfid_match.group(1).strip() if mfid_match else ''
-        equid = equid_match.group(1).strip() if equid_match else ''
-        userid_match = re.search(r'<[^>]*:userid[^>]*>([^<]+)</[^>]*:userid>', raw_body, re.IGNORECASE)
-        userid = userid_match.group(1).strip() if userid_match else ''
-
+        ids = self._device_status.extract_request_ids(raw_body)
+        mfid, equid, userid = ids['mfid'], ids['equid'], ids['userid']
         info(f"B_QueryFaciDevStat mfid={mfid}, equid={equid}, userid={userid}", LogTag.SOAP)
 
-        # 从 devinfo 加载设备信息
-        devinfo_xml = self.preset_manager.load_responsebody(mfid, equid)
+        # 检查 devinfo 是否存在
+        devinfo_xml = self._device_status.load_devinfo(mfid, equid)
         if not devinfo_xml:
             info(f"B_QueryFaciDevStat 未找到 devinfo 文件, key={mfid}_{equid}", LogTag.SOAP)
-            return self.preset_manager.build_error_response("设备信息未找到",
-                                                            error_code='BIZ-000002', error_type='error')
+            return self.preset_manager.build_error_response(
+                "设备信息未找到", error_code='BIZ-000002', error_type='error'
+            )
 
-        # 从 devinfo 中提取 equname
-        equname_match = re.search(r'<[^>]*:equname[^>]*>([^<]+)</[^>]*:equname>', devinfo_xml, re.IGNORECASE)
-        equname = equname_match.group(1).strip() if equname_match else 'Unknown'
+        status = self._device_status.get_status(mfid, equid, userid)
 
-        # mfname 从 settings.json 的 device.presets[].station.name 获取，而不是 devinfo XML
-        # 查找与当前 mfid/equid 匹配的 preset
-        mfname = 'Unknown'
-        for preset in self.config.device_presets:
-            if preset.get('mfid') == mfid and preset.get('equid') == equid:
-                mfname = preset.get('station', {}).get('name', 'Unknown')
-                break
-        if mfname == 'Unknown':
-            # Fallback: 尝试第一个 preset 的 station name
-            presets = self.config.get('device.presets', [])
-            if presets:
-                mfname = presets[0].get('station', {}).get('name', 'Unknown')
-
-        # 检查是否有活动测量
-        active_sessions = self.session_manager.get_active_sessions()
-
-        if active_sessions:
-            session = active_sessions[0]
-            taskid = session.taskid
-            stc = session.fscan_params.get('stc', 0)
-            appid = session.fscan_params.get('appid', '')
-            busy_userid = session.fscan_params.get('userid', '')
-            mode = session.fscan_params.get('mode', 'fscan')
-            if mode == 'fscan':
-                feature = 'B_FScan'
-            elif mode == 'pscan':
-                feature = 'B_PScan'
-            elif mode == 'mscan':
-                feature = 'B_MScan'
-            elif mode == 'sglfreq':
-                feature = 'B_SglFreqMeas'
-            else:
-                feature = ''
-
+        if status.state == 'busy':
             return self.preset_manager.build_response(
                 'B_QueryFaciDevStat',
-                mfid=mfid,
-                mfname=mfname,
-                equid=equid,
-                equname=equname,
+                mfid=status.mfid, mfname=status.mfname,
+                equid=status.equid, equname=status.equname,
                 state='busy',
-                taskid=taskid,
-                userid=busy_userid or userid,
-                feature=feature,
-                appid=appid,
-                stc=stc
+                taskid=status.taskid, userid=status.userid,
+                feature=status.feature, appid=status.appid, stc=status.stc
             )
         else:
-            # idle: 保留 equlist/equipment 包装层，不填 taskid/userid/feature/appid/stc
-            idle_body = (
-                '<srrc:responsebody><srrc:result>'
-                '<srrc:mfid>{mfid}</srrc:mfid>'
-                '<srrc:mfname>{mfname}</srrc:mfname>'
-                '<srrc:altitude>0.0</srrc:altitude>'
-                '<srrc:equlist><srrc:equipment>'
-                '<srrc:equid>{equid}</srrc:equid>'
-                '<srrc:equname>{equname}</srrc:equname>'
-                '<srrc:state>idle</srrc:state>'
-                '</srrc:equipment></srrc:equlist>'
-                '</srrc:result></srrc:responsebody>'
-            )
+            idle_body = self._device_status.build_idle_body()
             return self.preset_manager.build_response(
                 'B_QueryFaciDevStat',
                 body_content=idle_body,
-                mfid=mfid,
-                mfname=mfname,
-                equid=equid,
-                equname=equname,
+                mfid=status.mfid, mfname=status.mfname,
+                equid=status.equid, equname=status.equname,
                 state='idle'
             )
 
@@ -1116,19 +1074,23 @@ class AtomService:
         session.state = SessionState.ACTIVE
 
         # 创建 RMCP 客户端并连接设备
+        rmcp_host, rmcp_port = self.config.get_rmcp_target(
+            session.fscan_params.get('mfid', ''),
+            session.fscan_params.get('equid', '')
+        )
         rmcp_client = RMCPClient(
-            host=self.config.device_host,
-            port=self.config.device_port,
+            host=rmcp_host,
+            port=rmcp_port,
             timeout=10
         )
 
         if not rmcp_client.connect():
-            error(f"连接设备失败: {self.config.device_host}:{self.config.device_port}", LogTag.RMCP)
+            error(f"连接设备失败: {rmcp_host}:{rmcp_port}", LogTag.RMCP)
             session.close_all()
             return
 
         session.attach_target(rmcp_client)
-        info(f"已连接设备: {self.config.device_host}:{self.config.device_port}", LogTag.RMCP)
+        info(f"已连接设备: {rmcp_host}:{rmcp_port}", LogTag.RMCP)
 
         # 构建 RMCP 请求
         xml_content = self._build_rmcp_request(session.fscan_params)

@@ -4,25 +4,30 @@ REM Usage: build.bat (run from soap_proxy root, NOT from packaging/)
 
 setlocal enabledelayedexpansion
 
-set "VERSION=1.2.1"
 set "PYINSTALLER=C:\Users\tuoyi5\AppData\Local\Programs\Python\Python37\Scripts\pyinstaller.exe"
+
+set "SCRIPT_DIR=%~dp0"
+set "PROJECT_DIR=%SCRIPT_DIR%.."
+
+REM 从唯一版本源读取 PROXY_VERSION
+python "%~dp0..\..\..\get_version.py" "%~dp0..\..\..\."
+if errorlevel 1 (
+    echo [ERROR] Failed to parse version
+    exit /b 1
+)
+for /f "usebackq tokens=1,2 delims==" %%A in ("%SCRIPT_DIR%..\..\..\_version.env") do (
+    if "%%A"=="PROXY_VERSION" set "VERSION=%%B"
+)
 
 echo ========================================
 echo   SOAPProxy Build v%VERSION% (single exe)
 echo ========================================
 echo.
 
-set "SCRIPT_DIR=%~dp0"
-set "PROJECT_DIR=%SCRIPT_DIR%.."
-
 if not exist "%PYINSTALLER%" (
     echo [ERROR] PyInstaller not found
     exit /b 1
 )
-
-REM Update spec file version
-echo [0/4] Updating spec file...
-powershell -Command "(Get-Content '%SCRIPT_DIR%SOAPProxy.spec') -replace 'SOAPProxy_v[0-9.]+', 'SOAPProxy_v%VERSION%' | Set-Content '%SCRIPT_DIR%SOAPProxy.spec'"
 
 echo [1/4] Cleaning...
 if exist "%PROJECT_DIR%\build" rmdir /s /q "%PROJECT_DIR%\build"

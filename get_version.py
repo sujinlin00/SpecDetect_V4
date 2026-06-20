@@ -1,24 +1,36 @@
 # -*- coding: utf-8 -*-
-"""版本解析工具"""
-import re
-import sys
-import os
+"""
+版本号统一管理 — 唯一版本源
 
-path = sys.argv[1] if len(sys.argv) > 1 else 'version.py'
+所有版本号只在这里定义。其他文件通过以下方式读取：
+  - Python:  sys.path.insert(0, <workspace_root>); from get_version import ATOM_VERSION
+  - Spec:    sys.path / regex 读取本文件
+  - Batch:   python get_version.py <output_dir> → 生成 _version.env
+"""
 
-with open(path, 'r', encoding='utf-8') as f:
-    content = f.read()
+ATOM_VERSION = "1.6.3"
+PROXY_VERSION = "1.2.5"
+RMCP_PROXY_VERSION = "1.0.4"
 
-m1 = re.search(r'ATOM_VERSION\s*=\s*"([^"]+)"', content)
-m2 = re.search(r'PROXY_VERSION\s*=\s*"([^"]+)"', content)
-m3 = re.search(r'RMCP_PROXY_VERSION\s*=\s*"([^"]+)"', content)
+__all__ = ['ATOM_VERSION', 'PROXY_VERSION', 'RMCP_PROXY_VERSION']
 
-v1 = m1.group(1) if m1 else '1.2.6'
-v2 = m2.group(1) if m2 else '1.1.8'
-v3 = m3.group(1) if m3 else '1.0.0'
 
-env_path = os.path.join(os.path.dirname(path), '_version.env')
-with open(env_path, 'w', encoding='utf-8') as f:
-    f.write(f'ATOM_VERSION={v1}\n')
-    f.write(f'PROXY_VERSION={v2}\n')
-    f.write(f'RMCP_PROXY_VERSION={v3}\n')
+def write_env(output_dir: str):
+    """生成 _version.env 供 batch 脚本使用"""
+    import os
+    env_path = os.path.join(output_dir, '_version.env')
+    with open(env_path, 'w', encoding='utf-8') as f:
+        f.write(f'ATOM_VERSION={ATOM_VERSION}\n')
+        f.write(f'PROXY_VERSION={PROXY_VERSION}\n')
+        f.write(f'RMCP_PROXY_VERSION={RMCP_PROXY_VERSION}\n')
+
+
+if __name__ == '__main__':
+    import sys
+    output_dir = sys.argv[1] if len(sys.argv) > 1 else '.'
+    # 处理 Windows batch 传参时可能带上的尾部反斜杠或引号
+    output_dir = output_dir.strip('"').rstrip('\\/')
+    write_env(output_dir)
+    print(f"ATOM_VERSION={ATOM_VERSION}")
+    print(f"PROXY_VERSION={PROXY_VERSION}")
+    print(f"RMCP_PROXY_VERSION={RMCP_PROXY_VERSION}")

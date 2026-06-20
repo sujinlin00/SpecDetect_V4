@@ -13,13 +13,13 @@
 
 ### 1.1 核心原则
 
-| 原则 | 说明 |
-|------|------|
-| **独立进程** | proxy 与 Atom 是同一部署包的两个进程，运行时独立 |
-| **自动拉起** | 启动 Atom 时自动启动 proxy；Atom 退出时自动终止 proxy |
-| **旁观者角色** | proxy 监听 RMCP 端口，旁观所有流量（Atom 的 + 其他客户端的），不做进程内嵌入 |
-| **透传永远开启** | TCP 双向透传是基础功能，始终运行，不可关闭 |
-| **分析功能按需** | 帧解析、按接口分离日志默认关闭，通过配置开启 |
+| 原则         | 说明                                               |
+| ---------- | ------------------------------------------------ |
+| **独立进程**   | proxy 与 Atom 是同一部署包的两个进程，运行时独立                   |
+| **自动拉起**   | 启动 Atom 时自动启动 proxy；Atom 退出时自动终止 proxy           |
+| **旁观者角色**  | proxy 监听 RMCP 端口，旁观所有流量（Atom 的 + 其他客户端的），不做进程内嵌入 |
+| **透传永远开启** | TCP 双向透传是基础功能，始终运行，不可关闭                          |
+| **分析功能按需** | 帧解析、按接口分离日志默认关闭，通过配置开启                           |
 
 ---
 
@@ -59,29 +59,29 @@
 
 ### 3.1 基础层（始终开启，不可关闭）
 
-| 功能 | 说明 |
-|------|------|
+| 功能         | 说明                          |
+| ---------- | --------------------------- |
 | **TCP 透传** | 双向转发，字节不修改。这是 proxy 存在的根本目的 |
-| **多端口监听** | 同时监听两个端口，接受多个客户端连接 |
-| **进程管理** | Atom 启动时拉起，Atom 退出时终止 |
+| **多端口监听**  | 同时监听两个端口，接受多个客户端连接          |
+| **进程管理**   | Atom 启动时拉起，Atom 退出时终止       |
 
 ### 3.2 解析层（默认关闭，配置开启）
 
-| 功能 | 配置键 | 默认值 |
-|------|--------|:--:|
-| RMCP 帧头解析 | `proxy.parse.enabled` | `false` |
-| funcid 提取（SOAP→RMCP 关联） | （跟随 parse.enabled） | `false` |
-| nBdType 识别 | （跟随 parse.enabled） | `false` |
+| 功能                      | 配置键                        | 默认值     |
+| ----------------------- | -------------------------- |:-------:|
+| RMCP 帧头解析               | `rmcp_proxy.parse.enabled` | `false` |
+| funcid 提取（SOAP→RMCP 关联） | （跟随 parse.enabled）         | `false` |
+| nBdType 识别              | （跟随 parse.enabled）         | `false` |
 
 ### 3.3 日志层（默认关闭，配置开启）
 
-| 功能 | 配置键 | 默认值 |
-|------|--------|:--:|
-| 结构化文本日志 (.log) | `proxy.log.text_enabled` | `false` |
-| 原始二进制 (.raw) | `proxy.log.raw_enabled` | `false` |
-| JSON 日志 (.json) | `proxy.log.json_enabled` | `false` |
-| 连接 CSV (.csv) | `proxy.log.csv_enabled` | `false` |
-| 按接口分离回调日志 | `proxy.log.per_interface_enabled` | `false` |
+| 功能              | 配置键                                    | 默认值     |
+| --------------- | -------------------------------------- |:-------:|
+| 结构化文本日志 (.log)  | `rmcp_proxy.log.text_enabled`          | `false` |
+| 原始二进制 (.raw)    | `rmcp_proxy.log.raw_enabled`           | `false` |
+| JSON 日志 (.json) | `rmcp_proxy.log.json_enabled`          | `false` |
+| 连接 CSV (.csv)   | `rmcp_proxy.log.csv_enabled`           | `false` |
+| 按接口分离回调日志       | `rmcp_proxy.log.per_interface_enabled` | `false` |
 
 **全部关闭时**：proxy 进程只做 TCP 透传 + 控制台极简输出（连接/断开事件），CPU/内存/磁盘开销接近零。
 
@@ -95,11 +95,11 @@
 
 ### 4.1 共享配置文件
 
-proxy 与 Atom 共用 `config/settings.json`，新增 `proxy` 段：
+proxy 与 Atom 共用 `config/settings.json`，新增 `rmcp_proxy` 段：
 
 ```json
 {
-  "proxy": {
+  "rmcp_proxy": {
     "listen": {
       "host": "0.0.0.0",
       "port_1": 9999,
@@ -126,13 +126,13 @@ proxy 与 Atom 共用 `config/settings.json`，新增 `proxy` 段：
 
 ### 4.2 端口默认值
 
-| 配置键 | 默认值 | 说明 |
-|--------|:--:|------|
-| `proxy.listen.host` | `0.0.0.0` | 对外监听地址 |
-| `proxy.listen.port_1` | `9999` | 主监听端口 |
-| `proxy.listen.port_2` | `8888` | 副监听端口 |
-| `proxy.target.host` | `127.0.0.1` | 目标 Device 地址 |
-| `proxy.target.port` | `19999` | 目标 Device 端口 |
+| 配置键                        | 默认值         | 说明           |
+| -------------------------- |:-----------:| ------------ |
+| `rmcp_proxy.listen.host`   | `0.0.0.0`   | 对外监听地址       |
+| `rmcp_proxy.listen.port_1` | `9999`      | 主监听端口        |
+| `rmcp_proxy.listen.port_2` | `8888`      | 副监听端口        |
+| `rmcp_proxy.target.host`   | `127.0.0.1` | 目标 Device 地址 |
+| `rmcp_proxy.target.port`   | `19999`     | 目标 Device 端口 |
 
 ---
 
@@ -147,7 +147,7 @@ import subprocess
 
 def start(self):
     # ... 现有启动逻辑 ...
-    
+
     # 启动 rmcp_proxy 子进程
     proxy_exe = os.path.join(os.path.dirname(sys.executable), 'rmcp_proxy.exe')
     if os.path.exists(proxy_exe):
@@ -164,7 +164,7 @@ def start(self):
 ```python
 def stop(self):
     # ... 现有停止逻辑 ...
-    
+
     if hasattr(self, '_proxy_process') and self._proxy_process:
         self._proxy_process.terminate()
         self._proxy_process.wait(timeout=5)
@@ -174,6 +174,7 @@ def stop(self):
 ### 5.3 proxy 独立运行（调试用）
 
 proxy 也支持命令行独立启动：
+
 ```
 rmcp_proxy.exe --config path/to/settings.json
 ```
@@ -191,10 +192,10 @@ SpecDetect_Atom/
 ├── proxy/              ← 新增：proxy 源码
 │   ├── __main__.py
 │   ├── proxy.py        ← 从 rmcp_proxy/rmcp_proxy.py 整合
-│   ├── config.py       ← 轻量适配，读 settings.json proxy 段
+│   ├── config.py       ← 轻量适配，读 settings.json rmcp_proxy 段
 │   └── logger.py       ← 精简日志模块
 ├── config/
-│   └── settings.json   ← 新增 proxy 段
+│   └── settings.json   ← 新增 rmcp_proxy 段
 ├── packaging/
 │   ├── SpecDetect_Atom.spec  ← Atom PyInstaller
 │   ├── rmcp_proxy.spec       ← 新增：proxy PyInstaller
@@ -206,24 +207,24 @@ SpecDetect_Atom/
 
 ### 6.2 复用清单
 
-| 来源 (`POC/rmcp_proxy/`) | 目标 (`proxy/`) | 复用程度 |
-|------|------|:--:|
-| `RMCPFrame` 类 (L134-359) | 完整复用，加解析开关 | 95% |
-| `ProxyConnection` 类 (L909-1131) | 完整复用，透传逻辑不变 | 90% |
-| `CaptureLogger` 类 (L362-906) | 按开关分层：透传→始终 / 日志→按需 | 70% |
-| `start_proxy()` (L1133-1205) | 改为从 `settings.json` 读配置 | 60% |
-| `FUNCID_TO_NAME` / `NBDTYPE_TO_NAME` | 直接复用 | 100% |
-| `parse_fscan_data_simple()` | 直接复用 | 100% |
-| 独立 `config.py` | **不复用** — 改为读 `settings.json` proxy 段 | 0% |
-| 独立 `DEFAULT_CONFIG` | **不复用** — 配置文件与 Atom 共享 | 0% |
+| 来源 (`POC/rmcp_proxy/`)               | 目标 (`proxy/`)                              | 复用程度 |
+| ------------------------------------ | ------------------------------------------ |:----:|
+| `RMCPFrame` 类 (L134-359)             | 完整复用，加解析开关                                 | 95%  |
+| `ProxyConnection` 类 (L909-1131)      | 完整复用，透传逻辑不变                                | 90%  |
+| `CaptureLogger` 类 (L362-906)         | 按开关分层：透传→始终 / 日志→按需                        | 70%  |
+| `start_proxy()` (L1133-1205)         | 改为从 `settings.json` 读配置                    | 60%  |
+| `FUNCID_TO_NAME` / `NBDTYPE_TO_NAME` | 直接复用                                       | 100% |
+| `parse_fscan_data_simple()`          | 直接复用                                       | 100% |
+| 独立 `config.py`                       | **不复用** — 改为读 `settings.json` rmcp_proxy 段 | 0%   |
+| 独立 `DEFAULT_CONFIG`                  | **不复用** — 配置文件与 Atom 共享                    | 0%   |
 
 ### 6.3 不纳入范围
 
-| 项目 | 原因 |
-|------|------|
-| `parse_fscan_data.py` / `compare_frames.py` | 独立分析工具，不属于 proxy 核心 |
-| `rmcp_proxy.bat` / `start_rx_atom.bat` | 旧启动脚本，由 Atom 自动拉起替代 |
-| 旧 `config.py` | 改为共享 `settings.json` |
+| 项目                                          | 原因                   |
+| ------------------------------------------- | -------------------- |
+| `parse_fscan_data.py` / `compare_frames.py` | 独立分析工具，不属于 proxy 核心  |
+| `rmcp_proxy.bat` / `start_rx_atom.bat`      | 旧启动脚本，由 Atom 自动拉起替代  |
+| 旧 `config.py`                               | 改为共享 `settings.json` |
 
 ---
 
@@ -252,23 +253,23 @@ SGAtom_v1.6.0.zip
 
 ## 8. 实施阶段
 
-| 阶段 | 内容 | 估时 |
-|:--:|------|:--:|
-| 1 | 整合 proxy 源码到 `proxy/` 目录，适配共享配置 | 1 天 |
-| 2 | 添加日志开关（解析/日志分层控制） | 0.5 天 |
-| 3 | 进程管理（Atom 拉起/终止 proxy） | 0.5 天 |
-| 4 | PyInstaller 构建双 exe + build_all.bat | 0.5 天 |
-| 5 | 联调测试 | 1 天 |
+| 阶段  | 内容                                  | 估时    |
+|:---:| ----------------------------------- |:-----:|
+| 1   | 整合 proxy 源码到 `proxy/` 目录，适配共享配置     | 1 天   |
+| 2   | 添加日志开关（解析/日志分层控制）                   | 0.5 天 |
+| 3   | 进程管理（Atom 拉起/终止 proxy）              | 0.5 天 |
+| 4   | PyInstaller 构建双 exe + build_all.bat | 0.5 天 |
+| 5   | 联调测试                                | 1 天   |
 
 ---
 
 ## 9. 与 v1 版本的关键差异
 
-| | v1 方案（废弃） | v2 方案（当前） |
-|------|------|------|
-| 运行方式 | 嵌入 Atom 进程内 | **独立子进程** |
-| 工作模式 | Socket 包装 tap | **独立端口监听透传** |
-| 端口 | 无额外端口 | 9999 + 8888 → 19999 |
-| 配置 | 新增 sniffer 段 | 共享 settings.json proxy 段 |
-| 透传 | 不适用 | **始终开启**（基础功能） |
-| 解析/日志 | 始终开启 | **默认关闭**，按需配置 |
+|       | v1 方案（废弃）     | v2 方案（当前）                     |
+| ----- | ------------- | ----------------------------- |
+| 运行方式  | 嵌入 Atom 进程内   | **独立子进程**                     |
+| 工作模式  | Socket 包装 tap | **独立端口监听透传**                  |
+| 端口    | 无额外端口         | 9999 + 8888 → 19999           |
+| 配置    | 新增 sniffer 段  | 共享 settings.json rmcp_proxy 段 |
+| 透传    | 不适用           | **始终开启**（基础功能）                |
+| 解析/日志 | 始终开启          | **默认关闭**，按需配置                 |

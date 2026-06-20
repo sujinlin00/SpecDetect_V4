@@ -7,18 +7,14 @@ block_cipher = None
 
 _spec_dir = os.path.abspath(os.path.dirname(SPEC))
 
-# 从 version.py 读取版本号（与 build.bat 对齐）
-_version_path = os.path.join(_spec_dir, '..', '..', '..', 'SpecDetect_UI_Atom', 'SpecDetect_Atom', 'src', 'version.py')
-_rmcp_version = '1.0.1'
-if os.path.exists(_version_path):
-    try:
-        with open(_version_path, 'r', encoding='utf-8') as _f:
-            _content = _f.read()
-        _m = _re.search(r'RMCP_PROXY_VERSION\s*=\s*"([^"]+)"', _content)
-        if _m:
-            _rmcp_version = _m.group(1)
-    except Exception:
-        pass
+# 从 workspace 根 get_version.py 读取版本号（唯一版本源）
+_version_path = os.path.join(_spec_dir, '..', '..', '..', 'get_version.py')
+with open(_version_path, 'r', encoding='utf-8') as _f:
+    _content = _f.read()
+_m = _re.search(r'RMCP_PROXY_VERSION\s*=\s*"([^"]+)"', _content)
+if not _m:
+    raise SystemExit(f'FATAL: Cannot parse RMCP_PROXY_VERSION from {_version_path}')
+_rmcp_version = _m.group(1)
 
 # Collect runtime DLLs for Win7 app-local deployment (same as SGAtom)
 _runtime_dir = _os.path.join(_spec_dir, '..', '..', '..', 'SpecDetect_UI_Atom', 'SpecDetect_Atom', 'runtime')

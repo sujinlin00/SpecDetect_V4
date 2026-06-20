@@ -4,20 +4,15 @@ REM Unified Build Script for SGAtom + SOAPProxy + RMCPProxy + gen_license
 setlocal enabledelayedexpansion
 
 REM ========================================
-REM Versions (从 src/version.py 读取)
+REM Versions (从 src/version.py 唯一来源读取)
 REM ========================================
-python "%~dp0get_version.py" "%~dp0SpecDetect_UI_Atom\SpecDetect_Atom\src\version.py"
-
-REM 读取生成的环境文件
-for /f "usebackq tokens=1,2 delims==" %%A in ("%~dp0SpecDetect_UI_Atom\SpecDetect_Atom\src\_version.env") do (
-    set "%%A=%%B"
+python "%~dp0get_version.py" "%~dp0."
+if errorlevel 1 (
+    echo [ERROR] Failed to parse version from get_version.py
+    exit /b 1
 )
 
-REM 手动设置默认值（确保变量被定义）
-set "ATOM_VERSION=1.4.1"
-set "PROXY_VERSION=1.1.9"
-set "RMCP_PROXY_VERSION=1.0.0"
-for /f "usebackq tokens=1,2 delims==" %%A in ("%~dp0SpecDetect_UI_Atom\SpecDetect_Atom\src\_version.env") do (
+for /f "usebackq tokens=1,2 delims==" %%A in ("%~dp0_version.env") do (
     set "%%A=%%B"
 )
 
@@ -168,7 +163,7 @@ copy /y "%GEN_AUTH_CODE_BUILD_DIR%\gen_auth_code_v%ATOM_VERSION%.exe" "%OUTPUT_D
 echo [10/10] Copying config files...
 mkdir "%OUTPUT_DIR%\config" 2>nul
 mkdir "%OUTPUT_DIR%\keys" 2>nul
-if exist "%ATOM_PROJECT_DIR%\config\settings.json" copy /y "%ATOM_PROJECT_DIR%\config\settings.json" "%OUTPUT_DIR%\config\"
+if exist "%ATOM_PROJECT_DIR%\config\" xcopy /e /y /q "%ATOM_PROJECT_DIR%\config\*" "%OUTPUT_DIR%\config\"
 if exist "%ATOM_PROJECT_DIR%\keys\private_key.pem" copy /y "%ATOM_PROJECT_DIR%\keys\private_key.pem" "%OUTPUT_DIR%\keys\"
 if exist "%RMCP_PROXY_PROJECT_DIR%\config\rmcp_settings.json" copy /y "%RMCP_PROXY_PROJECT_DIR%\config\rmcp_settings.json" "%OUTPUT_DIR%\config\"
 

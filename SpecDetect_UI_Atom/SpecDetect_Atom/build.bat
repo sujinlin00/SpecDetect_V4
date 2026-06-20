@@ -39,7 +39,7 @@ mkdir dist
 
 REM Build
 echo [2/5] Building...
-"%PYINSTALLER%" packaging\SpecDetect_Atom.spec --distpath "%OUTPUT_DIR%"
+"%PYINSTALLER%" --onefile packaging\SpecDetect_Atom.spec --distpath "%OUTPUT_DIR%"
 if errorlevel 1 (
     echo [ERROR] Build failed
     exit /b 1
@@ -54,7 +54,7 @@ if exist "..\..\dist\SGAtom_v1.0.6\ucrtbase.dll" copy /y "..\..\dist\SGAtom_v1.0
 
 REM Compress
 echo [4/5] Compressing...
-powershell -Command "Compress-Archive -Path '%OUTPUT_DIR%\SGAtom.exe' -DestinationPath 'dist\SGAtom_v%VERSION%.zip' -Force"
+powershell -Command "Compress-Archive -Path '%OUTPUT_DIR%\SGAtom_v%VERSION%.exe' -DestinationPath 'dist\SGAtom_v%VERSION%.zip' -Force"
 if errorlevel 1 (
     echo [ERROR] Compress failed
     exit /b 1
@@ -63,14 +63,14 @@ if errorlevel 1 (
 REM Copy to central dist
 echo [5/5] Copying to central dist...
 if not exist "D:\arvin\claude_workspace\SpecDetect_V4\dist" mkdir "D:\arvin\claude_workspace\SpecDetect_V4\dist"
-copy /y "%OUTPUT_DIR%\SGAtom.exe" "D:\arvin\claude_workspace\SpecDetect_V4\dist\"
+copy /y "%OUTPUT_DIR%\SGAtom_v%VERSION%.exe" "D:\arvin\claude_workspace\SpecDetect_V4\dist\"
 copy /y "dist\SGAtom_v%VERSION%.zip" "D:\arvin\claude_workspace\SpecDetect_V4\dist\"
 
 REM Done
 echo [6/6] Done!
 echo.
 echo Output:
-echo   - %OUTPUT_DIR%\SGAtom.exe
+echo   - %OUTPUT_DIR%\SGAtom_v%VERSION%.exe
 echo   - dist\SGAtom_v%VERSION%.zip
 echo.
 pause

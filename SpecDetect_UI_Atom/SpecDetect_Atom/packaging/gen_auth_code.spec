@@ -18,13 +18,14 @@ try:
 except NameError:
     _spec_dir = _os.path.abspath('.')
 
-# Read version
-_sys.path.insert(0, _os.path.abspath(_os.path.join(_spec_dir, '..', 'src')))
+# Read version from workspace root get_version.py (唯一版本源)
+_workspace_root = _os.path.abspath(_os.path.join(_spec_dir, '..', '..', '..'))
+_sys.path.insert(0, _workspace_root)
 try:
-    from version import ATOM_VERSION
+    from get_version import ATOM_VERSION
     _ATOM_VERSION = str(ATOM_VERSION)
-except Exception:
-    _ATOM_VERSION = '1.5.7'
+except Exception as e:
+    raise SystemExit(f'FATAL: Cannot read ATOM_VERSION from get_version.py: {e}')
 
 # Collect runtime DLLs
 _runtime_dir = _os.path.join(_spec_dir, '..', 'runtime')

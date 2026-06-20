@@ -55,18 +55,8 @@ def _load_from_xml(xml_path: str) -> Dict[str, Any]:
         if rxinfo is not None:
             config['station_id'] = rxinfo.get('id', '')
             config['station_name'] = rxinfo.get('staname', '')
-            config['device_host'] = rxinfo.get('serverip', '')
-            config['device_port'] = int(rxinfo.get('serverport', '1449') or '1449')
-
-        # 解析 log
-        logger = root.find('.//log/logger')
-        if logger is not None:
-            config['log_trace'] = logger.get('trace', 'false')
-            config['log_debug'] = logger.get('debug', 'true')
-            config['log_info'] = logger.get('info', 'true')
-            config['log_notice'] = logger.get('notice', 'true')
-            config['log_warning'] = logger.get('warning', 'true')
-            config['log_error'] = logger.get('error', 'true')
+            config['rmcp_host'] = rxinfo.get('serverip', '')
+            config['rmcp_port'] = int(rxinfo.get('serverport', '1449') or '1449')
 
         return config
     except Exception as e:
@@ -139,17 +129,7 @@ def _load_single_devinfo(xml_path: str, filename: str) -> Optional[Dict[str, Any
                 'name': station.get('staname', ''),
                 'serverip': station.get('serverip', ''),
                 'serverport': int(station.get('serverport', '1449') or '1449'),
-                'protocol': station.get('protocol', 'rmcp'),
-                'testself': station.get('testself', 'no'),
-                'btelnet': station.get('btelnet', 'no'),
-                'reconn': station.get('reconn', 'no'),
-                'querytask': station.get('querytask', 'no'),
-                'statusip': station.get('statusip', ''),
-                'statusport': station.get('statusport', ''),
-                'longitude': station.get('longitude', ''),
-                'latitude': station.get('latitude', ''),
-                'audioopenval': station.get('audioopenval', ''),
-                'audiocloseval': station.get('audiocloseval', '')
+                'protocol': station.get('protocol', 'rmcp')
             }
 
         # 解析 rxinfo/device（所有属性和子元素）
@@ -194,14 +174,7 @@ def _load_single_devinfo(xml_path: str, filename: str) -> Optional[Dict[str, Any
         if srrc_result is not None:
             srrc_ns = 'http://www.srrc.org.cn'
             preset['srrc_info'] = {
-                'mfid': srrc_result.findtext(f'{{{srrc_ns}}}mfid', ''),
-                'equid': srrc_result.findtext(f'{{{srrc_ns}}}equid', ''),
-                'equname': srrc_result.findtext(f'{{{srrc_ns}}}equname', ''),
-                'equtype': srrc_result.findtext(f'{{{srrc_ns}}}equtype', ''),
-                'equstatus': srrc_result.findtext(f'{{{srrc_ns}}}equstatus', ''),
-                'equimanu': srrc_result.findtext(f'{{{srrc_ns}}}equimanu', ''),
-                'equmodel': srrc_result.findtext(f'{{{srrc_ns}}}equmodel', ''),
-                'equsn': srrc_result.findtext(f'{{{srrc_ns}}}equsn', ''),
+                'equname': srrc_result.findtext(f'{{{srrc_ns}}}equname', '')
             }
 
         return preset
@@ -247,8 +220,8 @@ class Config:
             cls._config = json.load(f)
 
         # 确保 presets 中的每个条目都有 key
-        device_presets = cls._config.get('device', {}).get('presets', [])
-        for p in device_presets:
+        rmcp_presets = cls._config.get('rmcp', {}).get('presets', [])
+        for p in rmcp_presets:
             if 'key' not in p and 'mfid' in p and 'equid' in p:
                 p['key'] = f"{p['mfid']}_{p['equid']}"
 
@@ -279,29 +252,29 @@ class Config:
             if devinfo_path:
                 devinfo_abs_path = os.path.join(base_dir, devinfo_path)
                 if os.path.exists(devinfo_abs_path):
-                    device_presets = _load_devinfo_presets(devinfo_abs_path)
-                    print(f"已加载 {len(device_presets)} 个设备预置")
+                    rmcp_presets_loaded = _load_devinfo_presets(devinfo_abs_path)
+                    print(f"已加载 {len(rmcp_presets_loaded)} 个设备预置")
 
-                    # 合并到 device 配置中
-                    if 'device' not in cls._config:
-                        cls._config['device'] = {}
+                    # 合并到 rmcp 配置中
+                    if 'rmcp' not in cls._config:
+                        cls._config['rmcp'] = {}
 
                     # 分离：presets_to_save 不含 device_info, key
                     # 保留 srrc_info（用于 B_QueryDeviceInfo 响应）
                     presets_to_save = []
-                    for p in device_presets:
+                    for p in rmcp_presets_loaded:
                         p_copy = p.copy()
                         p_copy.pop('device_info', None)
                         p_copy.pop('key', None)
                         presets_to_save.append(p_copy)
 
-                    cls._config['device']['presets'] = presets_to_save
+                    cls._config['rmcp']['presets'] = presets_to_save
 
                     # 回写到 settings.json
                     cls._save_config()
 
-                    # 恢复完整的 device_presets（包含 device_info）到内存
-                    cls._config['device']['presets'] = device_presets
+                    # 恢复完整的 presets（包含 device_info）到内存
+                    cls._config['rmcp']['presets'] = rmcp_presets_loaded
 
         if cls._instance is None:
             cls._instance = cls.__new__(cls)
@@ -314,27 +287,27 @@ class Config:
     @classmethod
     def _merge_config(cls, xml_config: Dict[str, Any]):
         """合并 XML 配置到主配置"""
-        # atom 配置
-        if 'atom' not in cls._config:
-            cls._config['atom'] = {}
-        atom = cls._config['atom']
+        # soap 配置
+        if 'soap' not in cls._config:
+            cls._config['soap'] = {}
+        soap = cls._config['soap']
         if 'soap_port' in xml_config:
-            cls._set_value(atom, 'soap_port', xml_config['soap_port'])
+            cls._set_value(soap, 'port', xml_config['soap_port'])
         if 'streamsrc_ip' in xml_config:
-            cls._set_value(atom, 'streamsrc_ip', xml_config['streamsrc_ip'])
+            cls._set_value(soap, 'streamsrc_ip', xml_config['streamsrc_ip'])
         if 'streamsrc_port' in xml_config:
-            cls._set_value(atom, 'streamsrc_port', xml_config['streamsrc_port'])
+            cls._set_value(soap, 'streamsrc_port', xml_config['streamsrc_port'])
         if 'atom_protocol' in xml_config:
-            cls._set_value(atom, 'protocol', xml_config['atom_protocol'])
+            cls._set_value(soap, 'protocol', xml_config['atom_protocol'])
 
-        # device 配置
-        if 'device' not in cls._config:
-            cls._config['device'] = {}
-        device = cls._config['device']
-        if 'device_host' in xml_config:
-            cls._set_value(device, 'host', xml_config['device_host'])
-        if 'device_port' in xml_config:
-            cls._set_value(device, 'port', xml_config['device_port'])
+        # rmcp 配置
+        if 'rmcp' not in cls._config:
+            cls._config['rmcp'] = {}
+        rmcp = cls._config['rmcp']
+        if 'rmcp_host' in xml_config:
+            cls._set_value(rmcp, 'host', xml_config['rmcp_host'])
+        if 'rmcp_port' in xml_config:
+            cls._set_value(rmcp, 'port', xml_config['rmcp_port'])
 
         # session 配置
         if 'session' not in cls._config:
@@ -351,19 +324,6 @@ class Config:
                 'id': xml_config.get('station_id', ''),
                 'name': xml_config.get('station_name', '')
             }
-
-        # log 配置
-        if 'log' not in cls._config:
-            cls._config['log'] = {}
-        log = cls._config['log']
-        if 'log_debug' in xml_config:
-            cls._set_value(log, 'debug', xml_config['log_debug'] == 'true')
-        if 'log_info' in xml_config:
-            cls._set_value(log, 'info', xml_config['log_info'] == 'true')
-        if 'log_warning' in xml_config:
-            cls._set_value(log, 'warning', xml_config['log_warning'] == 'true')
-        if 'log_error' in xml_config:
-            cls._set_value(log, 'error', xml_config['log_error'] == 'true')
 
     @classmethod
     def _save_config(cls):
@@ -398,7 +358,7 @@ class Config:
     def get(self, key: str, default: Any = None) -> Any:
         """获取配置值
 
-        支持点号分隔的路径，如 'atom.soap_port'
+        支持点号分隔的路径，如 'soap.port'
 
         Args:
             key: 配置键
@@ -421,13 +381,13 @@ class Config:
         # 处理 value/desc 格式
         return self.__class__._get_value(value)
 
-    def get_atom_config(self) -> Dict[str, Any]:
-        """获取 Atom 配置"""
-        return self._config.get('atom', {})
+    def get_soap_config(self) -> Dict[str, Any]:
+        """获取 SOAP 配置"""
+        return self._config.get('soap', {})
 
-    def get_device_config(self) -> Dict[str, Any]:
-        """获取设备配置"""
-        return self._config.get('device', {})
+    def get_rmcp_config(self) -> Dict[str, Any]:
+        """获取 RMCP 配置"""
+        return self._config.get('rmcp', {})
 
     def get_session_config(self) -> Dict[str, Any]:
         """获取 Session 配置"""
@@ -438,40 +398,40 @@ class Config:
         return self._config.get('log', {})
 
     @property
-    def atom_host(self) -> str:
-        return self.get('atom.host', '127.0.0.1')
+    def soap_host(self) -> str:
+        return self.get('soap.host', '0.0.0.0')
 
     @property
-    def atom_protocol(self) -> str:
-        return self.get('atom.protocol', 'boer')
+    def soap_protocol(self) -> str:
+        return self.get('soap.protocol', 'boer')
 
     @property
     def soap_port(self) -> int:
-        return self.get('atom.soap_port', 8282)
+        return self.get('soap.port', 8282)
 
     @property
-    def soap_appid(self) -> str:
-        return self.get('soap.appid', '123456')
+    def def_appid(self) -> str:
+        return self.get('def_id.appid', '123456')
 
     @property
-    def soap_userid(self) -> str:
-        return self.get('soap.userid', 'RX_admin')
+    def def_userid(self) -> str:
+        return self.get('def_id.userid', 'RX_admin')
 
     @property
     def streamsrc_ip(self) -> str:
-        return self.get('atom.streamsrc_ip', '127.0.0.1')
+        return self.get('soap.streamsrc_ip', '127.0.0.1')
 
     @property
     def streamsrc_port(self) -> int:
-        return self.get('atom.streamsrc_port', 18012)
+        return self.get('soap.streamsrc_port', 18012)
 
     @property
-    def device_host(self) -> str:
-        return self.get('device.host', '100.72.95.36')
+    def rmcp_host(self) -> str:
+        return self.get('rmcp.host', '100.72.95.36')
 
     @property
-    def device_port(self) -> int:
-        return self.get('device.port', 1449)
+    def rmcp_port(self) -> int:
+        return self.get('rmcp.port', 1449)
 
     @property
     def stale_timeout(self) -> int:
@@ -518,21 +478,46 @@ class Config:
         return self.get('station.name', '')
 
     @property
-    def device_presets(self) -> list:
-        """获取设备预置列表"""
-        return self.get('device.presets', [])
+    def rmcp_presets(self) -> list:
+        """获取 RMCP 设备预置列表"""
+        return self.get('rmcp.presets', [])
 
     def get_device_preset(self, key: str) -> Optional[Dict[str, Any]]:
-        """根据 key（文件名不含扩展名）获取设备预置"""
-        for preset in self.device_presets:
+        """根据 key（mfid_equid）获取设备预置"""
+        for preset in self.rmcp_presets:
             if preset.get('key') == key:
                 return preset
         return None
 
     def get_default_device_preset(self) -> Optional[Dict[str, Any]]:
         """获取默认设备预置（第一个）"""
-        presets = self.device_presets
+        presets = self.rmcp_presets
         return presets[0] if presets else None
+
+    def get_rmcp_target(self, mfid: str = '', equid: str = '') -> tuple:
+        """根据 mfid/equid 获取 RMCP 连接目标
+
+        匹配 rmcp.presets 中 mfid+equid 对应的 preset，
+        返回其 station.serverip / station.serverport。
+        无匹配时 fallback 到全局 rmcp.host / rmcp.port。
+
+        Args:
+            mfid: 设备 mfid
+            equid: 设备 equid
+
+        Returns:
+            (host: str, port: int)
+        """
+        if mfid and equid:
+            for preset in self.rmcp_presets:
+                if preset.get('mfid') == mfid and preset.get('equid') == equid:
+                    station = preset.get('station', {})
+                    host = station.get('serverip', '')
+                    port = station.get('serverport', 0)
+                    if host and port:
+                        return host, port
+                    break
+        return self.rmcp_host, self.rmcp_port
 
 
 def load_config(config_file: str = None) -> Config:
