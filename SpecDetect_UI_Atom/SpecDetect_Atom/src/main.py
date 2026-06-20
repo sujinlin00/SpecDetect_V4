@@ -14,7 +14,31 @@ import argparse
 import ctypes
 
 # 添加 src 目录到路径
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+_src_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, _src_dir)
+# 添加项目根目录到路径（供 proxy 包导入）
+_project_root = os.path.dirname(_src_dir)
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
+# ── 方案C: 同 exe 不同入口 ──────────────────────────
+# 必须在所有 Logger.init / 重导入之前检查，避免 proxy 子进程
+# 执行不必要的 Atom 模块级初始化。
+# 方案C: 同 exe 不同入口 — 环境变量控制
+# SGAtom 子进程 spawn proxy 时设置 SGATOM_PROXY_MODE=1
+if __name__ == '__main__' and os.environ.get('SGATOM_PROXY_MODE') == '1':
+    config_path = os.environ.get('SGATOM_PROXY_CONFIG')
+    if config_path:
+        try:
+            from proxy.__main__ import start_proxy
+            start_proxy(config_path)
+        except Exception as _e:
+            import traceback
+            traceback.print_exc(file=sys.stderr)
+            sys.exit(1)
+    else:
+        print("[ERROR] SGATOM_PROXY_MODE requires SGATOM_PROXY_CONFIG", file=sys.stderr)
+        sys.exit(1)
 
 
 def _show_error_and_exit(title: str, message: str, exit_code: int = 1):
@@ -49,15 +73,15 @@ def _print_red(msg: str) -> None:
 
 # 初始化日志（最早，避免后续 import 时日志未初始化）
 if getattr(sys, 'frozen', False):
-    # exe 模式：日志在 exe 同级 logs 目录
+    # exe 模式：日志在 exe 同级 logs/atom 目录
     exe_dir = os.path.dirname(os.path.abspath(sys.executable))
-    log_dir = os.path.join(exe_dir, 'logs')
+    log_dir = os.path.join(exe_dir, 'logs', 'atom')
     os.makedirs(log_dir, exist_ok=True)
     log_level = os.environ.get('ATOM_LOG_LEVEL', 'INFO')
 else:
-    # 开发模式：日志在 ./logs
+    # 开发模式：日志在 ./logs/atom
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    log_dir = os.path.join(base_dir, 'logs')
+    log_dir = os.path.join(base_dir, 'logs', 'atom')
     os.makedirs(log_dir, exist_ok=True)
     log_level = 'DEBUG'
 
@@ -155,12 +179,29 @@ def main():
             input("  按任意键退出...")
             sys.exit(1)
 
+    # ── 启动 RMCP Proxy 子进程 ──────────────────────────
+    from atom.proxy_launcher import (
+        read_rmcp_proxy_enabled, spawn_proxy, stop_proxy,
+    )
+    proxy_proc = None
+    if read_rmcp_proxy_enabled(config_file):
+        try:
+            proxy_proc = spawn_proxy(config_file)
+        except Exception as e:
+            error(f"RMCP 代理启动失败: {e}", LogTag.ATOM)
+        else:
+            if proxy_proc is not None:
+                info(f"RMCP 代理已启动 (pid={proxy_proc.pid})", LogTag.ATOM)
+            else:
+                info("rmcp_proxy.exe 未找到，跳过代理启动", LogTag.ATOM)
+
     # 创建服务
     service = AtomService(config_file)
 
     # 信号处理
     def signal_handler(signum, frame):
         info(f"收到信号 {signum}，停止服务...", LogTag.ATOM)
+        stop_proxy(proxy_proc)
         service.stop()
         sys.exit(0)
 
@@ -182,6 +223,7 @@ def main():
     except Exception as e:
         error(f"服务异常: {e}", LogTag.ATOM)
     finally:
+        stop_proxy(proxy_proc)
         service.stop()
 
 

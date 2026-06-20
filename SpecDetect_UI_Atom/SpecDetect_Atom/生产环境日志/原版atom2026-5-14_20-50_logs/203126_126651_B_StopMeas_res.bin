@@ -1,8 +1,0 @@
-HTTP/1.1 200 OK
-Server: gSOAP/2.8
-Content-Type: text/xml; charset=utf-8
-Content-Length: 858
-Connection: close
-
-<?xml version="1.0" encoding="UTF-8"?>
-<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ns1="base" xmlns:srrc="http://www.srrc.org.cn"><soapenv:Header><srrc:ProviderResponse><srrc:bizResCd>BIZ-000001</srrc:bizResCd><srrc:bizResText>调用成功</srrc:bizResText></srrc:ProviderResponse></soapenv:Header><soapenv:Body><srrc:responsebody><srrc:result><srrc:appid>530000-01-0167:常规监测</srrc:appid><srrc:userid>53350004</srrc:userid><srrc:mfid>53090001140010</srrc:mfid><srrc:equid>5327d8e3-e04c-4ce0-90cf-605725dd8862</srrc:equid><srrc:taskid>6d5c405f-8c17-4e74-ae6c-8c2a7423967c</srrc:taskid></srrc:result></srrc:responsebody></soapenv:Body></soapenv:Envelope>

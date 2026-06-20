@@ -8,6 +8,10 @@ import shutil
 import ctypes
 
 if getattr(sys, 'frozen', False):
+    # 方案C: proxy 子进程跳过 Atom Logger 初始化
+    # （proxy 使用自己的 CaptureLogger 写 logs/rmcp/）
+    _is_proxy_subprocess = os.environ.get('SGATOM_PROXY_MODE') == '1'
+
     exe_dir = os.path.dirname(os.path.abspath(sys.executable))
 
     # 将 exe 所在目录添加到 DLL 搜索路径最早位置
@@ -36,37 +40,38 @@ if getattr(sys, 'frozen', False):
         pass
 
     # 创建 logs 目录（与 config 同级）
-    log_dir = os.path.join(exe_dir, 'logs')
-    os.makedirs(log_dir, exist_ok=True)
+    if not _is_proxy_subprocess:
+        log_dir = os.path.join(exe_dir, 'logs', 'atom')
+        os.makedirs(log_dir, exist_ok=True)
 
-    # 初始化日志（最早捕获启动期异常）
-    # 将 _MEIPASS 中的 logger 模块加入路径以便导入
-    src_log_module = os.path.join(sys._MEIPASS, 'src', 'log')
-    if src_log_module not in sys.path:
-        sys.path.insert(0, src_log_module)
+        # 初始化日志（最早捕获启动期异常）
+        # 将 _MEIPASS 中的 logger 模块加入路径以便导入
+        src_log_module = os.path.join(sys._MEIPASS, 'src', 'log')
+        if src_log_module not in sys.path:
+            sys.path.insert(0, src_log_module)
 
-    try:
-        from log.logger import Logger, LogTag
-        log_level = os.environ.get('ATOM_LOG_LEVEL', 'INFO')
-        Logger.init(log_dir=log_dir, log_level=log_level)
-        logger_instance = Logger.get_instance()
-        if logger_instance:
-            logger_instance.info("=== SGAtom runtime_hook 启动 ===", tag=LogTag.ATOM)
-        else:
-            raise Exception("Logger.get_instance() 返回 None")
-    except Exception as e:
-        # 日志初始化失败，写到 stderr 供排查
-        import traceback
         try:
-            error_msg = f"[STARTUP ERROR] runtime_hook 日志初始化失败\n"
-            error_msg += f"exe_dir: {exe_dir}\n"
-            error_msg += f"log_dir: {log_dir}\n"
-            error_msg += f"_MEIPASS: {getattr(sys, '_MEIPASS', 'N/A')}\n"
-            error_msg += f"sys.path[:3]: {sys.path[:3]}\n"
-            error_msg += f"Exception: {e}\n"
-            error_msg += traceback.format_exc()
-            with open(os.path.join(log_dir, 'startup_error.log'), 'a', encoding='utf-8') as f:
-                f.write(error_msg)
-        except Exception:
-            pass
+            from log.logger import Logger, LogTag
+            log_level = os.environ.get('ATOM_LOG_LEVEL', 'INFO')
+            Logger.init(log_dir=log_dir, log_level=log_level)
+            logger_instance = Logger.get_instance()
+            if logger_instance:
+                logger_instance.info("=== SGAtom runtime_hook 启动 ===", tag=LogTag.ATOM)
+            else:
+                raise Exception("Logger.get_instance() 返回 None")
+        except Exception as e:
+            # 日志初始化失败，写到 stderr 供排查
+            import traceback
+            try:
+                error_msg = f"[STARTUP ERROR] runtime_hook 日志初始化失败\n"
+                error_msg += f"exe_dir: {exe_dir}\n"
+                error_msg += f"log_dir: {log_dir}\n"
+                error_msg += f"_MEIPASS: {getattr(sys, '_MEIPASS', 'N/A')}\n"
+                error_msg += f"sys.path[:3]: {sys.path[:3]}\n"
+                error_msg += f"Exception: {e}\n"
+                error_msg += traceback.format_exc()
+                with open(os.path.join(log_dir, 'startup_error.log'), 'a', encoding='utf-8') as f:
+                    f.write(error_msg)
+            except Exception:
+                pass
         # 继续启动，让主程序尝试初始化

@@ -216,7 +216,7 @@ class Config:
 
         cls._config_file = config_file
 
-        with open(config_file, 'r', encoding='utf-8') as f:
+        with open(config_file, 'r', encoding='utf-8-sig') as f:
             cls._config = json.load(f)
 
         # 确保 presets 中的每个条目都有 key
@@ -460,14 +460,14 @@ class Config:
             else:
                 # 备用方案：使用 _MEIPASS 或当前目录
                 exe_dir = getattr(sys, '_MEIPASS', os.getcwd())
-            log_dir_relative = self.get('log.dir', 'logs')
+            log_dir_relative = self.get('log.dir', 'logs/atom')
             # 如果是相对路径，拼到 exe 目录下
             if not os.path.isabs(log_dir_relative):
                 return os.path.join(exe_dir, log_dir_relative)
             return log_dir_relative
         else:
             # 开发模式使用相对路径
-            return self.get('log.dir', './logs')
+            return self.get('log.dir', './logs/atom')
 
     @property
     def station_id(self) -> str:

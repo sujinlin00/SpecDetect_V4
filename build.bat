@@ -26,11 +26,11 @@ set "PYTHON_EXE=C:\Users\tuoyi5\AppData\Local\Programs\Python\Python37\python.ex
 
 set "ATOM_PROJECT_DIR=%ROOT_DIR%SpecDetect_UI_Atom\SpecDetect_Atom"
 set "PROXY_PROJECT_DIR=%ROOT_DIR%SpecDetect_POC\soap_proxy"
-set "RMCP_PROXY_PROJECT_DIR=%ROOT_DIR%SpecDetect_POC\rmcp_proxy"
+set "RMCP_PROXY_PROJECT_DIR=%ATOM_PROJECT_DIR%"
 
 set "ATOM_BUILD_DIR=%ATOM_PROJECT_DIR%\build_onedir"
 set "PROXY_BUILD_DIR=%PROXY_PROJECT_DIR%\build_onedir"
-set "RMCP_BUILD_DIR=%RMCP_PROXY_PROJECT_DIR%\build_onedir"
+set "RMCP_BUILD_DIR=%RMCP_PROXY_PROJECT_DIR%\build_proxy"
 set "GEN_LICENSE_BUILD_DIR=%ATOM_PROJECT_DIR%\build_gen_license"
 set "GEN_AUTH_CODE_BUILD_DIR=%ATOM_PROJECT_DIR%\build_gen_auth_code"
 
@@ -52,7 +52,7 @@ if not exist "%PYINSTALLER%" (
 REM ========================================
 REM Step 1: Clean
 REM ========================================
-echo [1/9] Cleaning...
+echo [1/10] Cleaning...
 if exist "%ATOM_BUILD_DIR%" rmdir /s /q "%ATOM_BUILD_DIR%"
 if exist "%PROXY_BUILD_DIR%" rmdir /s /q "%PROXY_BUILD_DIR%"
 if exist "%RMCP_BUILD_DIR%" rmdir /s /q "%RMCP_BUILD_DIR%"
@@ -63,7 +63,7 @@ if exist "%OUTPUT_DIR%" rmdir /s /q "%OUTPUT_DIR%"
 REM ========================================
 REM Step 2: Cython compile license module -> .pyd
 REM ========================================
-echo [2/9] Cython compiling license module to .pyd...
+echo [2/10] Cython compiling license module to .pyd...
 pushd "%ATOM_PROJECT_DIR%"
     "%PYTHON_EXE%" setup_cython.py build_ext --inplace 2>nul
     REM Move .pyd files from nested dir to correct location
@@ -85,7 +85,7 @@ popd
 REM ========================================
 REM Step 3: Build SGAtom
 REM ========================================
-echo [3/9] Building SGAtom v%ATOM_VERSION% (onefile)...
+echo [3/10] Building SGAtom v%ATOM_VERSION% (onefile)...
 pushd "%ATOM_PROJECT_DIR%"
     "%PYINSTALLER%" --onefile packaging\SpecDetect_Atom.spec --distpath "%ATOM_BUILD_DIR%"
     if errorlevel 1 (
@@ -98,7 +98,7 @@ popd
 REM ========================================
 REM Step 4: Build SOAPProxy
 REM ========================================
-echo [4/9] Building SOAPProxy v%PROXY_VERSION% (onefile)...
+echo [4/10] Building SOAPProxy v%PROXY_VERSION% (onefile)...
 pushd "%PROXY_PROJECT_DIR%"
     "%PYINSTALLER%" --onefile packaging\SOAPProxy.spec --distpath "%PROXY_BUILD_DIR%"
     if errorlevel 1 (
@@ -111,7 +111,7 @@ popd
 REM ========================================
 REM Step 5: Build RMCPProxy
 REM ========================================
-echo [5/9] Building RMCPProxy v%RMCP_PROXY_VERSION% (onefile)...
+echo [5/10] Building RMCPProxy v%RMCP_PROXY_VERSION% (onefile)...
 pushd "%RMCP_PROXY_PROJECT_DIR%"
     "%PYINSTALLER%" --onefile packaging\rmcp_proxy.spec --distpath "%RMCP_BUILD_DIR%"
     if errorlevel 1 (
@@ -165,8 +165,6 @@ mkdir "%OUTPUT_DIR%\config" 2>nul
 mkdir "%OUTPUT_DIR%\keys" 2>nul
 if exist "%ATOM_PROJECT_DIR%\config\" xcopy /e /y /q "%ATOM_PROJECT_DIR%\config\*" "%OUTPUT_DIR%\config\"
 if exist "%ATOM_PROJECT_DIR%\keys\private_key.pem" copy /y "%ATOM_PROJECT_DIR%\keys\private_key.pem" "%OUTPUT_DIR%\keys\"
-if exist "%RMCP_PROXY_PROJECT_DIR%\config\rmcp_settings.json" copy /y "%RMCP_PROXY_PROJECT_DIR%\config\rmcp_settings.json" "%OUTPUT_DIR%\config\"
-
 echo.
 echo ========================================
 echo   Build Complete!

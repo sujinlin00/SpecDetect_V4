@@ -8,9 +8,9 @@
   - Batch:   python get_version.py <output_dir> → 生成 _version.env
 """
 
-ATOM_VERSION = "1.6.3"
-PROXY_VERSION = "1.2.5"
-RMCP_PROXY_VERSION = "1.0.4"
+ATOM_VERSION = "1.7.6"
+PROXY_VERSION = "1.2.11"
+RMCP_PROXY_VERSION = "1.0.12"
 
 __all__ = ['ATOM_VERSION', 'PROXY_VERSION', 'RMCP_PROXY_VERSION']
 

@@ -65,20 +65,21 @@
     ]
   },
   "rmcp_proxy": {
+    "enabled": true,
     "listen": {
       "host": "0.0.0.0",
       "port_1": 9999,
       "port_2": 8888
     },
     "target": {
-      "host": "127.0.0.1",
-      "port": 19999
+      "host": "100.72.95.36",
+      "port": 1449
     },
     "parse": {
       "enabled": false
     },
     "log": {
-      "dir": "logs",
+      "dir": "logs/rmcp",
       "text_enabled": false,
       "raw_enabled": false,
       "json_enabled": false,
@@ -95,6 +96,6 @@
   },
   "log": {
     "level": "INFO",
-    "dir": "logs"
+    "dir": "logs/atom"
   }
 }

@@ -39,12 +39,16 @@ if _os.path.isdir(_license_dir):
 
 a = Analysis(
     ['../src/main.py'],
-    pathex=[],
+    pathex=[
+        _os.path.join(_spec_dir, '..'),   # SpecDetect_Atom/ (含 proxy 包)
+    ],
     binaries=_binaries,
     datas=[
         ('../config', 'config'),
         ('../src/preset/templates', 'preset/templates'),
         ('../../../get_version.py', '.'),
+        # 方案C: 将 proxy 包作为 data 嵌入（确保 frozen 可导入）
+        ('../proxy', 'proxy'),
     ],
     hiddenimports=[
         'atom.service',
@@ -84,6 +88,14 @@ a = Analysis(
         'encodings.cp850',
         'encodings.cp1252',
         'encodings.idna',
+        # 方案C: proxy 子进程所需模块
+        'proxy',
+        'proxy.__main__',
+        'proxy.config',
+        'proxy.constants',
+        'proxy.frame',
+        'proxy.logger',
+        'proxy.connection',
     ],
     hookspath=[_os.path.join(_spec_dir, 'hooks')],
     runtime_hooks=[_os.path.join(_spec_dir, '..', 'src', 'runtime_hook.py')],
