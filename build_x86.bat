@@ -132,56 +132,96 @@ if /i not "%~1"=="no-cython" (
 REM ---------- 5. SGAtom (x86) ----------
 echo [3/8] Building SGAtom v%ATOM_VERSION% onefile x86 ...
 pushd "%ATOM_PROJECT_DIR%"
+    set /a SGATOM_RETRY=0
+:retry_sgatom
+    set /a SGATOM_RETRY+=1
+    if %SGATOM_RETRY% gtr 3 goto sgatom_fatal
     "%PYINSTALLER%" --onefile packaging\SpecDetect_Atom.spec --distpath "%ATOM_BUILD_DIR%"
-    if errorlevel 1 (
-        echo [FATAL] SGAtom build failed
-        popd
-        exit /b 1
-    )
+    if not errorlevel 1 goto sgatom_ok
+    echo [RETRY %SGATOM_RETRY%/3] SGAtom failed (likely AV scan), waiting 5s...
+    timeout /t 5 >nul
+    goto :retry_sgatom
+:sgatom_fatal
+    echo [FATAL] SGAtom build failed after 3 retries
+    popd
+    exit /b 1
+:sgatom_ok
 popd
 
 REM ---------- 6. SOAPProxy (x86) ----------
 echo [4/8] Building SOAPProxy v%PROXY_VERSION% onefile x86 ...
 pushd "%PROXY_PROJECT_DIR%"
+    set /a PROXY_RETRY=0
+:retry_proxy
+    set /a PROXY_RETRY+=1
+    if %PROXY_RETRY% gtr 3 goto proxy_fatal
     "%PYINSTALLER%" --onefile packaging\SOAPProxy.spec --distpath "%PROXY_BUILD_DIR%"
-    if errorlevel 1 (
-        echo [FATAL] SOAPProxy build failed
-        popd
-        exit /b 1
-    )
+    if not errorlevel 1 goto proxy_ok
+    echo [RETRY %PROXY_RETRY%/3] SOAPProxy failed (likely AV scan), waiting 5s...
+    timeout /t 5 >nul
+    goto :retry_proxy
+:proxy_fatal
+    echo [FATAL] SOAPProxy build failed after 3 retries
+    popd
+    exit /b 1
+:proxy_ok
 popd
 
 REM ---------- 7. RMCPProxy (x86) ----------
 echo [5/8] Building RMCPProxy v%RMCP_PROXY_VERSION% onefile x86 ...
 pushd "%RMCP_PROXY_PROJECT_DIR%"
+    set /a RMCP_RETRY=0
+:retry_rmcp
+    set /a RMCP_RETRY+=1
+    if %RMCP_RETRY% gtr 3 goto rmcp_fatal
     "%PYINSTALLER%" --onefile packaging\rmcp_proxy.spec --distpath "%RMCP_BUILD_DIR%"
-    if errorlevel 1 (
-        echo [FATAL] RMCPProxy build failed
-        popd
-        exit /b 1
-    )
+    if not errorlevel 1 goto rmcp_ok
+    echo [RETRY %RMCP_RETRY%/3] RMCPProxy failed (likely AV scan), waiting 5s...
+    timeout /t 5 >nul
+    goto :retry_rmcp
+:rmcp_fatal
+    echo [FATAL] RMCPProxy build failed after 3 retries
+    popd
+    exit /b 1
+:rmcp_ok
 popd
 
 REM ---------- 8. gen_license (x86) ----------
 echo [6/8] Building gen_license.exe onefile x86 ...
 pushd "%ATOM_PROJECT_DIR%"
+    set /a GEN_LICENSE_RETRY=0
+:retry_gen_license
+    set /a GEN_LICENSE_RETRY+=1
+    if %GEN_LICENSE_RETRY% gtr 3 goto gen_license_fatal
     "%PYINSTALLER%" --onefile packaging\gen_license.spec --distpath "%GEN_LICENSE_BUILD_DIR%"
-    if errorlevel 1 (
-        echo [FATAL] gen_license build failed
-        popd
-        exit /b 1
-    )
+    if not errorlevel 1 goto gen_license_ok
+    echo [RETRY %GEN_LICENSE_RETRY%/3] gen_license failed (likely AV scan), waiting 5s...
+    timeout /t 5 >nul
+    goto :retry_gen_license
+:gen_license_fatal
+    echo [FATAL] gen_license build failed after 3 retries
+    popd
+    exit /b 1
+:gen_license_ok
 popd
 
 REM ---------- 9. gen_auth_code (x86) ----------
 echo [7/8] Building gen_auth_code v%ATOM_VERSION% onefile x86 ...
 pushd "%ATOM_PROJECT_DIR%"
+    set /a GEN_AUTH_CODE_RETRY=0
+:retry_gen_auth_code
+    set /a GEN_AUTH_CODE_RETRY+=1
+    if %GEN_AUTH_CODE_RETRY% gtr 3 goto gen_auth_code_fatal
     "%PYINSTALLER%" --onefile packaging\gen_auth_code.spec --distpath "%GEN_AUTH_CODE_BUILD_DIR%"
-    if errorlevel 1 (
-        echo [FATAL] gen_auth_code build failed
-        popd
-        exit /b 1
-    )
+    if not errorlevel 1 goto gen_auth_code_ok
+    echo [RETRY %GEN_AUTH_CODE_RETRY%/3] gen_auth_code failed (likely AV scan), waiting 5s...
+    timeout /t 5 >nul
+    goto :retry_gen_auth_code
+:gen_auth_code_fatal
+    echo [FATAL] gen_auth_code build failed after 3 retries
+    popd
+    exit /b 1
+:gen_auth_code_ok
 popd
 
 REM ---------- 10. Copy to OUTPUT_DIR with _x86 suffix ----------
