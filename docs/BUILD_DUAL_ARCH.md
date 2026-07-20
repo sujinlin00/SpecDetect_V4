@@ -1,6 +1,6 @@
 # 双架构构建总体设计（x64 + x86）
 
-> 适用版本：SGAtom 1.7.8+、SOAPProxy 1.2.13+、rmcp_proxy 1.0.14+  
+> 适用版本：SGAtom 1.7.9+、SOAPProxy 1.2.13+、rmcp_proxy 1.0.14+  
 > 设计目标：64 位构建链路完全不被动摇 + 同时支持 32 位 Win7 部署
 
 ---
@@ -11,12 +11,12 @@
 
 | 设备 | 系统类型 | 现象 |
 |---|---|---|
-| 正常设备 | Win Embedded Standard 7 SP1 / 64 位 | `SGAtom_v1.7.8.exe` 正常运行 |
+| 正常设备 | Win Embedded Standard 7 SP1 / 64 位 | `SGAtom_v1.7.9.exe` 正常运行 |
 | 失败设备 | Win7 SP1 / **32 位** | 弹出"此文件的版本与正在运行的 Windows 版本不兼容" |
 
 ### 1.2 根因
 
-当前 `SGAtom_v1.7.8.exe` 编译链全部为 **x64**：
+当前 `SGAtom_v1.7.9.exe` 编译链全部为 **x64**：
 
 - Cython 扩展：`cp37-win_amd64.pyd`
 - Python 解释器：`C:\Users\tuoyi5\AppData\Local\Programs\Python\Python37` (x64)
@@ -37,7 +37,7 @@
 | Cython 输出 | `cp37-win_amd64.pyd` | `cp37-win32.pyd` |
 | PyInstaller bootloader | `Windows-64bit/run.exe` | `Windows-32bit/run.exe` |
 | 产物目录 | `dist\win7-x64\` | `dist\win7-x86\` |
-| EXE 命名 | `SGAtom_v1.7.8.exe` | `SGAtom_v1.7.8_x86.exe` |
+| EXE 命名 | `SGAtom_v1.7.9.exe` | `SGAtom_v1.7.9_x86.exe` |
 
 **关键不变量**：64 位构建过程**不读不写** `runtime\win32\`、`dist\win7-x86\`、x86 Python；32 位构建**不读不写** `runtime\win_amd64\`（旧 `runtime\` 根目录仍保留为 64 位兜底）、`dist\win7-x64\`、x64 Python。
 
@@ -61,12 +61,12 @@ SpecDetect_V4/
 │       ├── manager.cp37-win_amd64.pyd
 │       └── hardware.cp37-win_amd64.pyd
 └── dist/
-    ├── SGAtom_v1.7.8.exe
+    ├── SGAtom_v1.7.9.exe
     ├── SOAPProxy_v1.2.13.exe
     ├── rmcp_proxy_v1.0.14.exe
     ├── gen_license.exe
-    ├── gen_auth_code_v1.7.8.exe
-    └── SGAtom_v1.7.8.zip
+    ├── gen_auth_code_v1.7.9.exe
+    └── SGAtom_v1.7.9.zip
 ```
 
 ### 2.2 改造后
@@ -95,25 +95,25 @@ SpecDetect_V4/
 │       └── hardware.cp37-win32.pyd
 └── dist/
     ├── (root: 旧路径继续可用，由 build.bat 同步)     ← build.bat 兼容
-    │   ├── SGAtom_v1.7.8.exe                         ← 来自 win7-x64
+    │   ├── SGAtom_v1.7.9.exe                         ← 来自 win7-x64
     │   ├── SOAPProxy_v1.2.13.exe
     │   ├── rmcp_proxy_v1.0.14.exe
     │   ├── gen_license.exe
-    │   └── gen_auth_code_v1.7.8.exe
+    │   └── gen_auth_code_v1.7.9.exe
     ├── win7-x64/                                     ← 64 位新目录
-    │   ├── SGAtom_v1.7.8.exe
+    │   ├── SGAtom_v1.7.9.exe
     │   ├── SOAPProxy_v1.2.13.exe
     │   ├── rmcp_proxy_v1.0.14.exe
-    │   ├── gen_license_v1.7.8.exe
-    │   ├── gen_auth_code_v1.7.8.exe
+    │   ├── gen_license_v1.7.9.exe
+    │   ├── gen_auth_code_v1.7.9.exe
     │   ├── config/
     │   └── keys/private_key.pem
     └── win7-x86/                                     ← 32 位新目录
-        ├── SGAtom_v1.7.8_x86.exe
+        ├── SGAtom_v1.7.9_x86.exe
         ├── SOAPProxy_v1.2.13_x86.exe
         ├── rmcp_proxy_v1.0.14_x86.exe
-        ├── gen_license_v1.7.8_x86.exe
-        ├── gen_auth_code_v1.7.8_x86.exe
+        ├── gen_license_v1.7.9_x86.exe
+        ├── gen_auth_code_v1.7.9_x86.exe
         ├── config/
         └── keys/private_key.pem
 ```
@@ -211,7 +211,7 @@ build_all.bat
 | 是否改 PyInstaller 版本 | 否，仍用 4.10 |
 | 是否改 Cython 输出名 | 否，仍是 `cp37-win_amd64.pyd` |
 | 是否改 .spec 文件 | 改，但是默认无 `BUILD_ARCH` 时走 x64 路径 |
-| 现有 `dist\SGAtom_v1.7.8.exe` 路径 | 由 `build.bat` 兼容层回写，不变 |
+| 现有 `dist\SGAtom_v1.7.9.exe` 路径 | 由 `build.bat` 兼容层回写，不变 |
 
 ### 5.1 第一次 x64 构建的额外动作
 
@@ -244,9 +244,9 @@ xcopy /E /Y SpecDetect_UI_Atom\SpecDetect_Atom\runtime\*.dll SpecDetect_UI_Atom\
 
 | # | EXE | 部署到 | 预期 |
 |---|---|---|---|
-| 1 | `dist\win7-x64\SGAtom_v1.7.8.exe` | 64 位 Win7 SP1 | 正常启动 |
+| 1 | `dist\win7-x64\SGAtom_v1.7.9.exe` | 64 位 Win7 SP1 | 正常启动 |
 | 2 | `dist\win7-x64\SOAPProxy_v1.2.13.exe` | 64 位 Win7 SP1 | 正常启动 |
-| 3 | `dist\win7-x86\SGAtom_v1.7.8_x86.exe` | 32 位 Win7 SP1 | **不再报"x86/x64 不兼容"** |
+| 3 | `dist\win7-x86\SGAtom_v1.7.9_x86.exe` | 32 位 Win7 SP1 | **不再报"x86/x64 不兼容"** |
 | 4 | `dist\win7-x86\SOAPProxy_v1.2.13_x86.exe` | 32 位 Win7 SP1 | 正常启动 |
 
 > 注：验证 1、2 已在故障前的"正常设备"上确认过，本次主要验证 3、4。
@@ -255,11 +255,11 @@ xcopy /E /Y SpecDetect_UI_Atom\SpecDetect_Atom\runtime\*.dll SpecDetect_UI_Atom\
 
 ```bat
 REM 64 位 EXE
-dumpbin /headers dist\win7-x64\SGAtom_v1.7.8.exe | findstr "machine"
+dumpbin /headers dist\win7-x64\SGAtom_v1.7.9.exe | findstr "machine"
 REM 预期：8664 machine (x64)
 
 REM 32 位 EXE
-dumpbin /headers dist\win7-x86\SGAtom_v1.7.8_x86.exe | findstr "machine"
+dumpbin /headers dist\win7-x86\SGAtom_v1.7.9_x86.exe | findstr "machine"
 REM 预期：14C machine (x86)
 ```
 
@@ -276,7 +276,7 @@ REM 预期：14C machine (x86)
 |---|---|
 | spec 改 `target_arch` 后 PyInstaller 行为变化 | 仍以 BUILD_ARCH 默认为 x64，旧路径 100% 行为不变 |
 | 现有 `runtime\*.dll` 未复制到 `win_amd64\` | 第一次 x64 构建前一次性 xcopy 即可，旧 `runtime\` 目录保留 |
-| `dist\SGAtom_v1.7.8.exe` 路径被破坏 | `build.bat` 兼容层自动同步到该路径 |
+| `dist\SGAtom_v1.7.9.exe` 路径被破坏 | `build.bat` 兼容层自动同步到该路径 |
 | x86 Python 装错位置 | `build_config.bat` 强校验存在性，缺失则 fail-fast |
 | 两个架构 `.pyd` 互相污染 | spec 中 `glob` 模式按 `BUILD_ARCH` 过滤；build 脚本构建前清理 src\license\*.pyd |
 | 32 位 Win7 内存不足 | 与构建无关，部署前需评估硬件（推荐 ≥ 4GB 物理内存） |

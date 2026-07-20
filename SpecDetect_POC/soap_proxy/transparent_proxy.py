@@ -1,6 +1,6 @@
 """SOAP 透明代理 - 仅转发请求，不做任何修改"""
 
-__version__ = "1.2.3"
+__version__ = "1.2.13"
 
 import socket
 import threading

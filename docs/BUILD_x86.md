@@ -1,6 +1,6 @@
 # 32 位构建详细流程（x86 / Win7 x86）
 
-> 适用版本：SGAtom 1.7.8+、SOAPProxy 1.2.13+、rmcp_proxy 1.0.14+  
+> 适用版本：SGAtom 1.7.9+、SOAPProxy 1.2.13+、rmcp_proxy 1.0.14+  
 > 目标：在 32 位 Win7 SP1 设备上正常运行 SGAtom、SOAPProxy、rmcp_proxy  
 > 前置：与 64 位构建**完全解耦**，不会影响 64 位构建链路
 
@@ -25,11 +25,11 @@ build_all.bat
 
 ```text
 dist\win7-x86\
-├── SGAtom_v1.7.8_x86.exe
+├── SGAtom_v1.7.9_x86.exe
 ├── SOAPProxy_v1.2.13_x86.exe
 ├── rmcp_proxy_v1.0.14_x86.exe
-├── gen_license_v1.7.8_x86.exe
-├── gen_auth_code_v1.7.8_x86.exe
+├── gen_license_v1.7.9_x86.exe
+├── gen_auth_code_v1.7.9_x86.exe
 ├── config\...
 └── keys\private_key.pem
 ```
@@ -195,21 +195,21 @@ C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Buil
 `build_x86.bat` 在文件名后加 `_x86` 后缀，避免与 64 位产物混淆：
 
 ```text
-SGAtom_v1.7.8_x86.exe
+SGAtom_v1.7.9_x86.exe
 SOAPProxy_v1.2.13_x86.exe
 rmcp_proxy_v1.0.14_x86.exe
-gen_license_v1.7.8_x86.exe
-gen_auth_code_v1.7.8_x86.exe
+gen_license_v1.7.9_x86.exe
+gen_auth_code_v1.7.9_x86.exe
 ```
 
-> 加 `_x86` 后缀仅是命名习惯，**EXE 内部仍报告 `ATOM_VERSION=1.7.8`**，与 64 位一致。
+> 加 `_x86` 后缀仅是命名习惯，**EXE 内部仍报告 `ATOM_VERSION=1.7.9`**，与 64 位一致。
 
 ### 3.4 子进程配套
 
-`SGAtom_v1.7.8_x86.exe` 启动时通过 `proxy_launcher.py` 找 `rmcp_proxy_v*.exe`：
+`SGAtom_v1.7.9_x86.exe` 启动时通过 `proxy_launcher.py` 找 `rmcp_proxy_v*.exe`：
 
 ```text
-SGAtom_v1.7.8_x86.exe       ← x86 主程序
+SGAtom_v1.7.9_x86.exe       ← x86 主程序
 rmcp_proxy_v1.0.14_x86.exe  ← x86 子进程（必须同目录）
 ```
 
@@ -223,11 +223,11 @@ rmcp_proxy_v1.0.14_x86.exe  ← x86 子进程（必须同目录）
 
 ```text
 C:\SGAtom\
-├── SGAtom_v1.7.8_x86.exe
+├── SGAtom_v1.7.9_x86.exe
 ├── SOAPProxy_v1.2.13_x86.exe
 ├── rmcp_proxy_v1.0.14_x86.exe
-├── gen_license_v1.7.8_x86.exe
-├── gen_auth_code_v1.7.8_x86.exe
+├── gen_license_v1.7.9_x86.exe
+├── gen_auth_code_v1.7.9_x86.exe
 ├── config\...
 └── keys\private_key.pem
 ```
@@ -246,7 +246,7 @@ C:\SGAtom\
 
 1. 复制 `C:\SGAtom\` 到目标机
 2. 确认设备"系统类型"为 32 位操作系统
-3. 双击 `SGAtom_v1.7.8_x86.exe`
+3. 双击 `SGAtom_v1.7.9_x86.exe`
 4. 预期：正常启动，弹出控制台 / GUI，不再报"x86/x64 不兼容"
 
 如仍有问题：
@@ -317,7 +317,7 @@ C:\SGAtom\
 [ ] VS 2022 BuildTools x86 组件已装
 [ ] runtime\win32\ 含 python37.dll / vcruntime140.dll / ucrtbase.dll / 30+ 个 api-ms-win-*.dll
 [ ] build_x86.bat 成功完成
-[ ] dist\win7-x86\SGAtom_v1.7.8_x86.exe 已生成
+[ ] dist\win7-x86\SGAtom_v1.7.9_x86.exe 已生成
 [ ] dumpbin 验证 machine=14C (x86)
 [ ] 部署到 32 位 Win7 SP1 设备能正常启动
 [ ] 不再报"此文件的版本与正在运行的 Windows 版本不兼容"

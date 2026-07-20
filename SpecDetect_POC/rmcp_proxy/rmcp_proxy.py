@@ -9,7 +9,7 @@ RMCP TCP 流量监听代理
 4. 实时输出 - 控制台实时显示请求/响应
 """
 
-__version__ = "1.0.1"
+__version__ = "1.0.14"
 
 import socket
 import struct

@@ -1,6 +1,6 @@
 # 64 位构建详细流程（x64 / Win7 x64 / Win10/11 x64）
 
-> 适用版本：SGAtom 1.7.8+、SOAPProxy 1.2.13+、rmcp_proxy 1.0.14+  
+> 适用版本：SGAtom 1.7.9+、SOAPProxy 1.2.13+、rmcp_proxy 1.0.14+  
 > 目标：保持现有 64 位构建链路完全不变，**新工具链向下兼容**
 
 ---
@@ -24,19 +24,19 @@ build_x64.bat no-cython
 
 ```text
 dist\win7-x64\
-├── SGAtom_v1.7.8.exe
+├── SGAtom_v1.7.9.exe
 ├── SOAPProxy_v1.2.13.exe
 ├── rmcp_proxy_v1.0.14.exe
-├── gen_license_v1.7.8.exe
-├── gen_auth_code_v1.7.8.exe
+├── gen_license_v1.7.9.exe
+├── gen_auth_code_v1.7.9.exe
 ├── config\...
 └── keys\private_key.pem
 
 （build.bat 兼容层额外同步到）dist\
-├── SGAtom_v1.7.8.exe
+├── SGAtom_v1.7.9.exe
 ├── SOAPProxy_v1.2.13.exe
 ├── ...
-└── SGAtom_v1.7.8.zip
+└── SGAtom_v1.7.9.zip
 ```
 
 ---
@@ -121,11 +121,11 @@ vcruntime140.dll
 
 | 源 | 目标 |
 |---|---|
-| `build_onedir\SGAtom_v1.7.8.exe` | `dist\win7-x64\SGAtom_v1.7.8.exe` |
+| `build_onedir\SGAtom_v1.7.9.exe` | `dist\win7-x64\SGAtom_v1.7.9.exe` |
 | `build_onedir\SOAPProxy_v1.2.13.exe` | `dist\win7-x64\SOAPProxy_v1.2.13.exe` |
 | `build_proxy\rmcp_proxy_v1.0.14.exe` | `dist\win7-x64\rmcp_proxy_v1.0.14.exe` |
-| `build_gen_license\gen_license.exe` | `dist\win7-x64\gen_license_v1.7.8.exe` |
-| `build_gen_auth_code\gen_auth_code_v1.7.8.exe` | `dist\win7-x64\gen_auth_code_v1.7.8.exe` |
+| `build_gen_license\gen_license.exe` | `dist\win7-x64\gen_license_v1.7.9.exe` |
+| `build_gen_auth_code\gen_auth_code_v1.7.9.exe` | `dist\win7-x64\gen_auth_code_v1.7.9.exe` |
 
 `config\` 与 `keys\private_key.pem` 一并复制。
 
@@ -147,8 +147,8 @@ vcruntime140.dll
 
 **结果**：
 
-- `dist\SGAtom_v1.7.8.exe` 仍然存在（兼容层同步）
-- `dist\win7-x64\SGAtom_v1.7.8.exe` 新增（推荐部署位置）
+- `dist\SGAtom_v1.7.9.exe` 仍然存在（兼容层同步）
+- `dist\win7-x64\SGAtom_v1.7.9.exe` 新增（推荐部署位置）
 - 旧部署脚本、批处理、文档无需修改
 
 ---
@@ -159,7 +159,7 @@ vcruntime140.dll
 
 ```bat
 REM 1. EXE 架构
-dumpbin /headers dist\win7-x64\SGAtom_v1.7.8.exe | findstr "machine"
+dumpbin /headers dist\win7-x64\SGAtom_v1.7.9.exe | findstr "machine"
 REM 预期：8664 machine (x64)
 
 REM 2. 关键 DLL 已嵌入
@@ -167,8 +167,8 @@ dir dist\win7-x64\*.exe
 REM 预期：5 个 EXE，5 个 .pyd 编译记录在 build log 中
 
 REM 3. 版本号正确
-powershell -Command "(Get-Item dist\win7-x64\SGAtom_v1.7.8.exe).VersionInfo.FileVersion"
-REM 预期：1.7.8.x （注意 version_info.txt 仍为 1.6.2，见已知问题）
+powershell -Command "(Get-Item dist\win7-x64\SGAtom_v1.7.9.exe).VersionInfo.FileVersion"
+REM 预期：1.7.9.x （注意 version_info.txt 仍为 1.6.2，见已知问题）
 
 REM 4. 部署到 64 位 Win7 SP1 设备
 copy dist\win7-x64\*.exe \\win7-x64-device\C$\SGAtom\
@@ -178,7 +178,7 @@ copy dist\win7-x64\*.exe \\win7-x64-device\C$\SGAtom\
 
 ## 7. 已知问题（与本次架构改造无关）
 
-- `version_info.txt` 长期未与 `get_version.py` 同步，导致 EXE 属性显示旧版本（1.6.2），文件名是 1.7.8。建议后续在 `build_x64.bat` 第 2 步前调用 `update_version.ps1` 同步。
+- `version_info.txt` 长期未与 `get_version.py` 同步，导致 EXE 属性显示旧版本（1.6.2），文件名是 1.7.9。建议后续在 `build_x64.bat` 第 2 步前调用 `update_version.ps1` 同步。
 - 私钥 `keys\private_key.pem` 仍被打入包，存在分发风险。建议改为运行时从外部 U 盘/网络加载。
 
 ---
