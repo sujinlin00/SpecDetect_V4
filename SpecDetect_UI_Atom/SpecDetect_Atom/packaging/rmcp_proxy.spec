@@ -22,7 +22,19 @@ if not _m:
 _rmcp_version = _m.group(1)
 
 # Collect runtime DLLs for Win7 app-local deployment
-_runtime_dir = os.path.join(_spec_dir, '..', 'runtime')
+# BUILD_ARCH 控制选择 win_amd64/ 或 win32/ 子目录
+_BUILD_ARCH = os.environ.get('BUILD_ARCH', 'x64').lower()
+if _BUILD_ARCH not in ('x64', 'x86'):
+    _BUILD_ARCH = 'x64'
+
+_runtime_base = os.path.join(_spec_dir, '..', 'runtime')
+if _BUILD_ARCH == 'x86':
+    _runtime_dir = os.path.join(_runtime_base, 'win32')
+    _target_arch = 'x86'
+else:
+    _runtime_dir = os.path.join(_runtime_base, 'win_amd64')
+    _target_arch = 'x64'
+
 _binaries = []
 if os.path.isdir(_runtime_dir):
     for _dll in _glob.glob(os.path.join(_runtime_dir, '*.dll')):
@@ -85,7 +97,7 @@ exe = EXE(
     console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
-    target_arch=None,
+    target_arch=_target_arch,
     codesign_identity=None,
     entitlements_file=None,
 )
