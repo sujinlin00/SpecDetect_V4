@@ -121,6 +121,34 @@ def build_rmcp_frame(
     return frame
 
 
+def build_rmcp_stop_frame(func_id: int = 0) -> bytes:
+    """构建 RMCP 停止帧
+
+    发送给设备以通知其停止当前测量。
+    func_id=0 表示通用停止指令，设备应停止所有活动测量。
+    如果设备不支持 func_id=0，将回退到 TCP 断连（现有行为）。
+
+    Args:
+        func_id: 功能 ID，默认 0（通用停止）
+
+    Returns:
+        完整的 RMCP 帧 bytes
+    """
+    # 构建最小 XML stop payload（与 B_StopMeas SOAP 请求正交）
+    stop_xml = (
+        '<?xml version="1.0" encoding="gb2312" ?>'
+        '<action id="1">'
+        f'<parameter groups="1" funcid="{func_id}">'
+        '<group index="0">'
+        '<item name="command" value="stop" />'
+        '</group>'
+        '</parameter>'
+        '</action>'
+    )
+    xml_bytes = stop_xml.encode('gb2312')
+    return build_rmcp_frame(xml_bytes, MSG_TYPE_REQUEST, func_id)
+
+
 def parse_rmcp_frame(frame: bytes) -> Optional[dict]:
     """解析 RMCP 帧"""
     if len(frame) < 18:

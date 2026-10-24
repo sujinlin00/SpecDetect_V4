@@ -45,14 +45,14 @@ class DeviceStatusProvider:
     1. 从 SOAP body 提取 mfid/equid/userid
     2. 从 devinfo XML 提取 equname
     3. 从 presets 查找 mfname
-    4. 判定 idle/busy 并收集 busy 字段
+    4. 遍历 busy_sources 判定 idle/busy 并收集 busy 字段
     5. 构建 idle 响应体
     """
 
-    def __init__(self, preset_manager, config, session_manager):
+    def __init__(self, preset_manager, config, busy_sources: list = None):
         self._preset_manager = preset_manager
         self._config = config
-        self._session_manager = session_manager
+        self._busy_sources = busy_sources or []
 
     def extract_request_ids(self, raw_body: str) -> Dict[str, str]:
         """从 SOAP body 提取 mfid/equid/userid"""
@@ -88,6 +88,8 @@ class DeviceStatusProvider:
     def get_status(self, mfid: str, equid: str, userid: str) -> StatusResult:
         """查询设备状态（主入口）
 
+        遍历 busy_sources 列表，任一来源判定为 busy 即返回 busy。
+
         Returns:
             StatusResult: 包含完整状态信息
         """
@@ -101,17 +103,17 @@ class DeviceStatusProvider:
         # mfname
         result.mfname = self.lookup_mfname(mfid, equid)
 
-        # 状态判定
-        active_sessions = self._session_manager.get_active_sessions()
-        if active_sessions:
-            session = active_sessions[0]
-            mode = session.fscan_params.get('mode', 'fscan')
-            result.state = 'busy'
-            result.taskid = session.taskid
-            result.userid = session.fscan_params.get('userid', '') or userid
-            result.feature = MODE_TO_FEATURE.get(mode, '')
-            result.appid = session.fscan_params.get('appid', '')
-            result.stc = session.fscan_params.get('stc', 0)
+        # 状态判定 — 遍历 busy_sources，首个 busy 来源胜出
+        for source in self._busy_sources:
+            if source.is_busy():
+                detail = source.detail or {}
+                result.state = 'busy'
+                result.taskid = detail.get('taskid', '')
+                result.userid = detail.get('userid', '') or userid
+                result.feature = detail.get('feature', '')
+                result.appid = detail.get('appid', '')
+                result.stc = detail.get('stc', 0)
+                break
 
         return result
 

@@ -26,7 +26,7 @@ from atom.session import SessionState, StreamSession, BandCollector
 from atom.soap.server import SOAPServer
 from atom.stream.server import StreamSrcServer
 from atom.rmcp.client import RMCPClient
-from atom.rmcp.frame import build_rmcp_frame, MSG_TYPE_DATA_1, MSG_TYPE_REQUEST
+from atom.rmcp.frame import build_rmcp_frame, build_rmcp_stop_frame, MSG_TYPE_DATA_1, MSG_TYPE_REQUEST
 from atom.fscan_processor import FScanProcessor
 from atom.stream.frame import (
     build_fscan_frame, build_fscan_frame_434, build_mscan_frame,
@@ -36,6 +36,7 @@ from atom.stream.frame import (
 from atom.validator import validate_bd_type, validate_band_structure, validate_frame_params
 from preset.device_preset import DevicePresetManager
 from atom.device_status import DeviceStatusProvider
+from atom.busy_source import SessionBusySource, ProxyBusySource
 from log.logger import Logger, log, info, debug, error, LogTag
 
 
@@ -64,9 +65,32 @@ class AtomService:
         # 初始化设备预置管理器
         self.preset_manager = DevicePresetManager()
 
-        # 初始化设备状态提供者
+        # 初始化设备状态提供者（多来源 busy 判定）
+        # 获取 rmcp_proxy 日志目录，推导 proxy_state.json 路径
+        # 路径基准与 proxy/__main__.py 保持严格一致：
+        #   frozen:  sys.executable 目录（Atom 与 Proxy 同 exe）
+        #   dev:     proxy/ 包目录（proxy/__main__.py 的 __file__ 目录）
+        proxy_config = self.config.get('rmcp_proxy', {})
+        proxy_log_dir = proxy_config.get('log', {}).get('dir', 'logs/rmcp')
+        if not _os.path.isabs(proxy_log_dir):
+            if getattr(_sys, 'frozen', False):
+                base_dir = _os.path.dirname(_os.path.abspath(_sys.executable))
+            else:
+                # dev: __file__ 是 src/atom/service.py
+                # ../../.. → 项目根，再进 proxy/ → 对齐 proxy/__main__.py 的 __file__ 目录
+                project_root = _os.path.abspath(
+                    _os.path.join(_os.path.dirname(__file__), '..', '..', '..')
+                )
+                base_dir = _os.path.join(project_root, 'proxy')
+            proxy_log_dir = _os.path.join(base_dir, proxy_log_dir)
+        proxy_state_path = _os.path.join(proxy_log_dir, 'proxy_state.json')
+
+        busy_sources = [
+            SessionBusySource(self.session_manager),
+            ProxyBusySource(proxy_state_path, staleness_seconds=30.0),
+        ]
         self._device_status = DeviceStatusProvider(
-            self.preset_manager, self.config, self.session_manager
+            self.preset_manager, self.config, busy_sources=busy_sources
         )
 
         # 初始化服务器
@@ -961,6 +985,8 @@ class AtomService:
         if taskid:
             session = self.session_manager.get_session_by_taskid(taskid)
             if session:
+                # 尝试发送 RMCP 停止帧（失败时回退到 TCP 断连）
+                self._send_rmcp_stop_frame(session)
                 self.session_manager.close_session(session)
                 info(f"B_StopMeas: 关闭 session {taskid}", LogTag.SESSION)
 
@@ -973,6 +999,32 @@ class AtomService:
             mfid=rf['mfid'],
             equid=rf['equid']
         )
+
+    def _send_rmcp_stop_frame(self, session):
+        """发送 RMCP 停止帧给设备
+
+        在 B_StopMeas 处理中调用，尝试优雅停止设备测量。
+        失败时静默回退到 TCP 断连（现有行为），不影响 session 清理流程。
+        """
+        try:
+            # 从 session 参数中获取 func_id
+            func_id = 0
+            if session.fscan_params:
+                # 尝试从 params 中获取 funcid（优先），再尝试 func_id
+                func_id = session.fscan_params.get('funcid', 0)
+                if not func_id and session.fscan_params.get('func_id'):
+                    func_id = session.fscan_params['func_id']
+
+            if session.target_client and session.target_client.is_connected():
+                stop_frame = build_rmcp_stop_frame(func_id)
+                session.target_client.send_raw_frame(stop_frame)
+                info(
+                    f"B_StopMeas: 已发送 RMCP 停止帧 funcid={func_id}",
+                    LogTag.RMCP
+                )
+        except Exception:
+            # 停止帧发送失败不影响 session 清理
+            pass
 
     def _handle_query_device(self, request: dict) -> bytes:
         """处理 B_QueryDeviceInfo"""

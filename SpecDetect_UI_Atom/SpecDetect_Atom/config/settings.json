@@ -21,20 +21,6 @@
     "port": 1449,
     "presets": [
       {
-        "mfid": "53090001140005",
-        "equid": "AE777276-4283-4611-8DDA-989194DFF905",
-        "station": {
-          "id": "53090009",
-          "name": "刺树丫站",
-          "serverip": "172.18.114.226",
-          "serverport": 9999,
-          "protocol": "rmcp"
-        },
-        "srrc_info": {
-          "equname": "MS845"
-        }
-      },
-      {
         "mfid": "53090001140010",
         "equid": "5327d8e3-e04c-4ce0-90cf-605725dd8862",
         "station": {
@@ -81,9 +67,9 @@
     "log": {
       "dir": "logs/rmcp",
       "text_enabled": false,
-      "raw_enabled": false,
-      "json_enabled": false,
-      "csv_enabled": false,
+      "raw_enabled": true,
+      "json_enabled": true,
+      "csv_enabled": true,
       "per_interface_enabled": false
     }
   },

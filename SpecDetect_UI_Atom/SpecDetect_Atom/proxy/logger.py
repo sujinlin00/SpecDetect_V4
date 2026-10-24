@@ -85,17 +85,20 @@ class CaptureLogger:
             self.conn_file = os.path.join(self.log_dir, f'connections{port_str}_{timestamp}.csv')
             with open(self.conn_file, 'w', encoding='utf-8') as f:
                 f.write("timestamp,event,client_ip,client_port,server_ip,server_port,"
-                        "duration_ms,bytes_sent,bytes_recv\n")
+                        "duration_ms,bytes_sent,bytes_recv,funcid,funcid_name\n")
 
     # ── 连接事件 ──────────────────────────────────────
 
     def log_connection(
         self, event: str, client_addr: Tuple[str, int],
         server_addr: Tuple[str, int],
-        duration_ms: int = 0, bytes_sent: int = 0, bytes_recv: int = 0
+        duration_ms: int = 0, bytes_sent: int = 0, bytes_recv: int = 0,
+        funcid: Optional[int] = None, funcid_name: Optional[str] = None,
     ) -> Dict[str, Any]:
         """记录连接事件"""
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+        funcid_str = str(funcid) if funcid is not None else ''
+        funcid_name_str = funcid_name or ''
         conn_info = {
             'timestamp': timestamp,
             'event': event,
@@ -106,12 +109,15 @@ class CaptureLogger:
             'duration_ms': duration_ms,
             'bytes_sent': bytes_sent,
             'bytes_recv': bytes_recv,
+            'funcid': funcid_str,
+            'funcid_name': funcid_name_str,
         }
         if self.csv_enabled and hasattr(self, 'conn_file'):
             with open(self.conn_file, 'a', encoding='utf-8') as f:
                 f.write(f"{timestamp},{event},{conn_info['client_ip']},{conn_info['client_port']},"
                         f"{conn_info['server_ip']},{conn_info['server_port']},"
-                        f"{duration_ms},{bytes_sent},{bytes_recv}\n")
+                        f"{duration_ms},{bytes_sent},{bytes_recv},"
+                        f"{funcid_str},{funcid_name_str}\n")
         return conn_info
 
     # ── 帧记录 ────────────────────────────────────────
@@ -134,13 +140,14 @@ class CaptureLogger:
         """
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
 
+        # 注: _raw 持有原始 bytes 引用（零拷贝），按需生成 hex（避免 CPU + 内存浪费）
         frame_info: Dict[str, Any] = {
             'timestamp': timestamp,
             'direction': direction,
             'src': addr[0],
             'src_port': addr[1],
             'size': len(data),
-            'hex': data.hex(),
+            '_raw': data,
             'listen_port': listen_port,
             'related_funcid': related_funcid,
             'related_funcid_name': related_funcid_name,
@@ -265,10 +272,18 @@ class CaptureLogger:
     # ── JSON 追加写入 ─────────────────────────────────
 
     def _append_json_line(self, frame_info: Dict[str, Any]) -> None:
-        """追加一行 JSON（非全量重写）"""
+        """追加一行 JSON（非全量重写）
+
+        注: 按需生成 hex 字段（仅 JSON 输出时需要），
+        避免每帧无条件分配 2x 帧大小的 hex 字符串。
+        """
         try:
+            # 按需生成 hex：将 _raw 引用替换为 hex 字符串
+            output = dict(frame_info)
+            raw = output.pop('_raw', None)
+            output['hex'] = raw.hex() if raw else ''
             with open(self.json_file, 'a', encoding='utf-8') as f:
-                json.dump(frame_info, f, ensure_ascii=False)
+                json.dump(output, f, ensure_ascii=False)
                 f.write('\n')
         except Exception:
             pass
@@ -327,11 +342,10 @@ class CaptureLogger:
             header = frame_info.get('header', {})
             if header.get('nMsgType') != 0:
                 return
-            hex_str = frame_info.get('hex', '')
-            if not hex_str:
+            raw = frame_info.get('_raw')
+            if not raw:
                 return
-            full_bytes = bytes.fromhex(hex_str)
-            payload = full_bytes[RMCP_FRAME_HEADER_SIZE:]
+            payload = raw[RMCP_FRAME_HEADER_SIZE:]
             if len(payload) < 11:
                 return
 

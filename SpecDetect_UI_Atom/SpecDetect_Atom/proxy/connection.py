@@ -32,6 +32,7 @@ class ProxyConnection:
         target_host: str,
         target_port: int,
         parse_enabled: bool = False,
+        state_writer: Optional[object] = None,
     ):
         self.client_socket = client_socket
         self.client_addr = client_addr
@@ -40,6 +41,7 @@ class ProxyConnection:
         self.target_host = target_host
         self.target_port = target_port
         self.parse_enabled = parse_enabled
+        self._state_writer = state_writer
 
         self.device_socket: Optional[socket.socket] = None
         self.running = True
@@ -47,6 +49,7 @@ class ProxyConnection:
         self.start_time: Optional[float] = None
         self.bytes_sent = 0
         self.bytes_recv = 0
+        self._closed = False
 
         # funcid 跟踪 (解析层)
         self.last_funcid: Optional[int] = None
@@ -74,6 +77,15 @@ class ProxyConnection:
             )
             print(f"[PROXY] Connected to {self.target_host}:{self.target_port}",
                   file=sys.stderr)
+
+            # 通知 StateWriter：连接已建立（用于 BusySource IPC）
+            if self._state_writer:
+                try:
+                    self._state_writer.connection_opened(
+                        self.client_addr, (self.target_host, self.target_port)
+                    )
+                except Exception:
+                    pass
 
             t1 = threading.Thread(target=self._forward_client_to_device, daemon=True)
             t2 = threading.Thread(target=self._forward_device_to_client, daemon=True)
@@ -255,14 +267,41 @@ class ProxyConnection:
                 duration_ms=duration_ms,
                 bytes_sent=self.bytes_sent,
                 bytes_recv=self.bytes_recv,
+                funcid=self.last_funcid,
+                funcid_name=self.last_funcid_name,
             )
+
+            client_str = f"{self.client_addr[0]}:{self.client_addr[1]}"
+            if self.last_funcid is not None:
+                funcid_str = f"funcid={self.last_funcid}({self.last_funcid_name}) "
+                print(
+                    f"[PROXY] CLOSE {funcid_str}client={client_str} "
+                    f"duration_ms={duration_ms} bytes_sent={self.bytes_sent} "
+                    f"bytes_recv={self.bytes_recv}",
+                    file=sys.stderr,
+                )
+            else:
+                print(
+                    f"[PROXY] CLOSE client={client_str} "
+                    f"duration_ms={duration_ms} bytes_sent={self.bytes_sent} "
+                    f"bytes_recv={self.bytes_recv}",
+                    file=sys.stderr,
+                )
 
     def close(self) -> None:
         """关闭连接（线程安全）"""
         with self.close_lock:
-            if not self.running:
+            if self._closed:
                 return
+            self._closed = True
             self.running = False
+
+            # 通知 StateWriter：连接已关闭（用于 BusySource IPC）
+            if self._state_writer:
+                try:
+                    self._state_writer.connection_closed(self.client_addr)
+                except Exception:
+                    pass
 
             if self.client_socket:
                 try:

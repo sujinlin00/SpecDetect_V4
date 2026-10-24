@@ -19,6 +19,7 @@ from typing import Dict, Any
 from .config import load_proxy_config
 from .logger import CaptureLogger
 from .connection import ProxyConnection
+from .state_writer import StateWriter
 
 # 版本号: 从 workspace 根 get_version.py 读取（与 Atom 共用版本源）
 try:
@@ -28,7 +29,7 @@ try:
     from get_version import RMCP_PROXY_VERSION
     __version__ = str(RMCP_PROXY_VERSION)
 except ImportError:
-    __version__ = "1.0.4"
+    __version__ = "1.0.14"
 
 
 # ── 父进程存活检测 (Windows) ─────────────────────────
@@ -113,6 +114,10 @@ def start_proxy(config_path: str) -> None:
             else os.path.dirname(os.path.abspath(__file__))
         log_dir = os.path.join(exe_dir, log_dir)
 
+    # 初始化状态文件写入器（用于 BusySource IPC）
+    state_file_path = os.path.join(log_dir, 'proxy_state.json')
+    state_writer = StateWriter(state_file_path)
+
     print("=" * 60, file=sys.stderr)
     print(f"RMCP TCP Proxy v{__version__}", file=sys.stderr)
     print("=" * 60, file=sys.stderr)
@@ -156,6 +161,7 @@ def start_proxy(config_path: str) -> None:
                     target_host=target_host,
                     target_port=target_port,
                     parse_enabled=parse_enabled,
+                    state_writer=state_writer,
                 )
                 t = threading.Thread(target=handler.run, daemon=True)
                 t.start()
@@ -193,6 +199,9 @@ def start_proxy(config_path: str) -> None:
     except KeyboardInterrupt:
         print("\n[PROXY] Shutting down...", file=sys.stderr)
     finally:
+        # 清理状态文件（正常退出）
+        state_writer.shutdown()
+
         for srv in servers:
             try:
                 srv.close()

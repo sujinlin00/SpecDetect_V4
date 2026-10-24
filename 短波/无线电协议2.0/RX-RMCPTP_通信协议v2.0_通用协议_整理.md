@@ -3,30 +3,30 @@
 **RX-RMCPTP**  
 *Rongxing Radio Manage Comprehensive Platform Transfer Protocol*
 
-| 项目 | 内容 |
-|------|------|
+| 项目   | 内容            |
+| ---- | ------------- |
 | 项目名称 | 嵘兴无线电监测综合管理平台 |
-| 文档编写 | 杜小猛 |
-| 版本号 | 1.9 |
-| 更新日期 | 2012/7/5 |
-| 公司 | 深圳市嵘兴实业发展有限公司 |
+| 文档编写 | 杜小猛           |
+| 版本号  | 1.9           |
+| 更新日期 | 2012/7/5      |
+| 公司   | 深圳市嵘兴实业发展有限公司 |
 
 ---
 
 ## 版本历史
 
-| 版本 | 日期 | 作者 | 变更内容 |
-|------|------|------|----------|
-| 1.9 | 2012/7/5 | 杜小猛 | 修正报文标志位：如果频率放大标志为1，表示频率被放大1000倍 |
-| 1.8 | 2011/12/14 | — | 增加中频宽带测向(11/28)；增加调制模式识别；修正频谱分析的描述头定义错误 |
-| 1.7 | 2011/11/4 | — | 增加IQ数字解调(29)、DDC解调(38)、空间谱测向(39)、多信道监听(40)、旋转云台(41)的协议定义 |
-| 1.6 | 2010/12/06 | 杜小猛 | 添加宽带监测、能量探测、信号识别、信号告警 |
-| 1.5 | 2009/11/12 | 杜小猛 | 调整频段扫描返回占用度的数据格式为(有效采样/总采样)；调整所有占用度数据长度为8字节 |
-| 1.4 | 2009/8/24 | 杜小猛 | 添加通知消息接口 |
-| 1.3 | 2009/8/22 | 杜小猛 | 修正数据校验 |
-| 1.2 | 2009/8/21 | 杜小猛 | 添加音频数据格式 |
-| 1.1 | 2009/8/17 | 杜小猛 | 修正业务数据传输格式 |
-| 1.0 | 2009/8/10 | 杜小猛 | 建立初稿 |
+| 版本  | 日期         | 作者  | 变更内容                                                     |
+| --- | ---------- | --- | -------------------------------------------------------- |
+| 1.9 | 2012/7/5   | 杜小猛 | 修正报文标志位：如果频率放大标志为1，表示频率被放大1000倍                          |
+| 1.8 | 2011/12/14 | —   | 增加中频宽带测向(11/28)；增加调制模式识别；修正频谱分析的描述头定义错误                  |
+| 1.7 | 2011/11/4  | —   | 增加IQ数字解调(29)、DDC解调(38)、空间谱测向(39)、多信道监听(40)、旋转云台(41)的协议定义 |
+| 1.6 | 2010/12/06 | 杜小猛 | 添加宽带监测、能量探测、信号识别、信号告警                                    |
+| 1.5 | 2009/11/12 | 杜小猛 | 调整频段扫描返回占用度的数据格式为(有效采样/总采样)；调整所有占用度数据长度为8字节              |
+| 1.4 | 2009/8/24  | 杜小猛 | 添加通知消息接口                                                 |
+| 1.3 | 2009/8/22  | 杜小猛 | 修正数据校验                                                   |
+| 1.2 | 2009/8/21  | 杜小猛 | 添加音频数据格式                                                 |
+| 1.1 | 2009/8/17  | 杜小猛 | 修正业务数据传输格式                                               |
+| 1.0 | 2009/8/10  | 杜小猛 | 建立初稿                                                     |
 
 ---
 
@@ -58,10 +58,10 @@ RX-RMCPTP 是嵘兴无线电管理综合平台的实时监测数据传输协议�
 
 ### 1.1 缩略语
 
-| 缩写 | 全称 |
-|------|------|
+| 缩写        | 全称                                                             |
+| --------- | -------------------------------------------------------------- |
 | RX-RMCPTP | Rongxing Radio Manage Comprehensive Platform Transfer Protocol |
-| RMCPT | Radio Manage Comprehensive Platform Transfer |
+| RMCPT     | Radio Manage Comprehensive Platform Transfer                   |
 
 ### 1.2 符号说明
 
@@ -70,15 +70,15 @@ RX-RMCPTP 是嵘兴无线电管理综合平台的实时监测数据传输协议�
 
 ### 1.3 名词解释
 
-| 术语 | 说明 |
-|------|------|
-| **测向统计时间** | 设备读取测向数据的统计时间 |
-| **监听统计时间** | 设备读取音频数据的统计时间 |
-| **监测统计时间** | 其他监测数据的统计时间 |
-| **校验和** | 用于数据完整性的简单校验算法 |
-| **数据单元** | 包含业务数据的最小内容单元 |
-| **客户段** | 发送请求命令的通信方 |
-| **中间服务** | 提供持续数据的一体化平台服务 |
+| 术语            | 说明                                             |
+| ------------- | ---------------------------------------------- |
+| **测向统计时间**    | 设备读取测向数据的统计时间                                  |
+| **监听统计时间**    | 设备读取音频数据的统计时间                                  |
+| **监测统计时间**    | 其他监测数据的统计时间                                    |
+| **校验和**       | 用于数据完整性的简单校验算法                                 |
+| **数据单元**      | 包含业务数据的最小内容单元                                  |
+| **客户段**       | 发送请求命令的通信方                                     |
+| **中间服务**      | 提供持续数据的一体化平台服务                                 |
 | **监测站设备组合标识** | 13位全国唯一编码 = 监测站码(8位) + 设备组合码(3位) + 同设备组合序号(2位) |
 
 ### 1.4 RX-RMCPT 连接说明
@@ -115,14 +115,14 @@ RX-RMCPTP 是嵘兴无线电管理综合平台的实时监测数据传输协议�
 
 #### 2.1.1 BYTE 图（18字节）
 
-| 字节位置 | 字段 | 类型 | 说明 |
-|:--------:|------|------|------|
-| 1-4 | dwLength | DWORD | 报文总长度（字节） |
-| 5-12 | tmStamp | FILETIME | 报文产生时间戳 |
-| 13-14 | nVersion | WORD | 报文版本号（MAKEWORD(0,7)=0x0007） |
-| 15 | nDataType | BYTE | 报文数据类型 |
-| 16 | nFlags | BYTE | 报文标志 |
-| 17-18 | nCheckSum | WORD | 头校验和 |
+| 字节位置  | 字段        | 类型       | 说明                          |
+|:-----:| --------- | -------- | --------------------------- |
+| 1-4   | dwLength  | DWORD    | 报文总长度（字节）                   |
+| 5-12  | tmStamp   | FILETIME | 报文产生时间戳                     |
+| 13-14 | nVersion  | WORD     | 报文版本号（MAKEWORD(0,7)=0x0007） |
+| 15    | nDataType | BYTE     | 报文数据类型                      |
+| 16    | nFlags    | BYTE     | 报文标志                        |
+| 17-18 | nCheckSum | WORD     | 头校验和                        |
 
 #### 2.1.2 C++ 结构定义
 
@@ -142,13 +142,13 @@ typedef struct tagRmcpFrame
 
 #### 2.1.3 报文标志（nFlags）位定义
 
-| 位 | 名称 | 说明 |
-|:--:|------|------|
-| 0 | 数据可丢弃标志 | 1=可丢弃，0=不可丢弃 |
-| 1 | 电平数据标志 | 1=是电平数据 |
-| 2 | 场强数据标志 | 1=是场强数据 |
-| 3 | 频率放大标志 | 1=频率以1/10000Hz为单位，0=以Hz为单位 |
-| 4-7 | 保留 | — |
+| 位   | 名称      | 说明                         |
+|:---:| ------- | -------------------------- |
+| 0   | 数据可丢弃标志 | 1=可丢弃，0=不可丢弃               |
+| 1   | 电平数据标志  | 1=是电平数据                    |
+| 2   | 场强数据标志  | 1=是场强数据                    |
+| 3   | 频率放大标志  | 1=频率以1/10000Hz为单位，0=以Hz为单位 |
+| 4-7 | 保留      | —                          |
 
 #### 2.1.4 头校验和计算
 
@@ -158,17 +158,17 @@ typedef struct tagRmcpFrame
 
 ### 2.2 报文数据类型（nDataType）
 
-| 值 | 类型 | 说明 |
-|:--:|------|------|
-| 0 | 监测业务数据 | 业务数据 |
-| 1 | 音频描述头 | 音频数据描述头 |
-| 2 | 音频数据 | 音频数据流 |
-| 3 | 分发请求 | 请求中间件发送数据 |
-| 4 | 信息数据 | 文本信息 |
-| 6 | 业务数据描述头 | 业务数据自描述头 |
-| 7 | 视频数据描述头 | — |
-| 8 | 通知消息 | 中间服务通知 |
-| 11 | GPS数据 | — |
+| 值   | 类型      | 说明        |
+|:---:| ------- | --------- |
+| 0   | 监测业务数据  | 业务数据      |
+| 1   | 音频描述头   | 音频数据描述头   |
+| 2   | 音频数据    | 音频数据流     |
+| 3   | 分发请求    | 请求中间件发送数据 |
+| 4   | 信息数据    | 文本信息      |
+| 6   | 业务数据描述头 | 业务数据自描述头  |
+| 7   | 视频数据描述头 | —         |
+| 8   | 通知消息    | 中间服务通知    |
+| 11  | GPS数据   | —         |
 
 ---
 
@@ -178,10 +178,10 @@ typedef struct tagRmcpFrame
 
 **静态部分（72字节）：**
 
-| 类型 | 关键字 | 长度 | 说明 |
-|------|--------|:----:|------|
-| __int64 | nTaskid | 8 | 请求分发数据的任务ID |
-| char | szUser[64] | 64 | 用户名 |
+| 类型      | 关键字        | 长度  | 说明          |
+| ------- | ---------- |:---:| ----------- |
+| __int64 | nTaskid    | 8   | 请求分发数据的任务ID |
+| char    | szUser[64] | 64  | 用户名         |
 
 > **注意**：若 nTaskid == -1，则请求通知消息。
 
@@ -191,50 +191,50 @@ typedef struct tagRmcpFrame
 
 ### 4.1 业务数据类型（nBdType）
 
-| ID (Hex) | ID (Dec) | 类型名称 | 说明 |
-|:--------:|:--------:|----------|------|
-| 0x0A | 10 | SGLFREQ | 单频测量 |
-| 0x0B | 11 | IFANALYSIS | 中频分析 |
-| 0x0C | 12 | DF | 单频测向 |
-| 0x0D | 13 | IFDF | 中频测向 |
-| 0x0E | 14 | MSACN | 离散扫描 |
-| 0x0F | 15 | FSCAN | 频段扫描 |
-| 0x10 | 16 | DSCAN | 数字扫描 |
-| 0x11 | 17 | PSCAN | 频谱扫描（保留） |
-| 0x12 | 18 | SPANALYSIS | 频谱分析 |
-| 0x13 | 19 | TDANALYSIS | 时域分析 |
-| 0x14 | 20 | DFSEARCH | 搜索测向 |
-| 0x15 | 21 | SCANDF | 频率测向 |
-| 0x16 | 22 | MSEARCH | 离散信号搜索 |
-| 0x17 | 23 | FSEARCH | 频段信号搜索 |
-| 0x18 | 24 | ITU | ITU测量 |
-| 0x19 | 25 | WBMONDF | 宽带监测测向 |
-| 0x1A | 26 | IFDFEXT | 中频宽带测向 |
-| 0x1B | 27 | FHOP | 跳频监测 |
-| 0x1C | 28 | WMON | 宽带监测 |
-| 0x1D | 29 | DIGDEM | IQ数字解调 |
-| 0x1E | 30 | BSCAN | 宽带扫描 |
-| 0x1F | 31 | EDETN | 能量探测 |
-| 0x20 | 32 | DDF | 离散测向 |
-| 0x21 | 33 | SIGNALMEAS | 信号测量（TCI特殊） |
-| 0x22 | 34 | MODREC | 信号识别（黑鸟系统） |
-| 0x23 | 35 | SINA | 信号告警（黑鸟系统） |
-| 0x24 | 36 | SMSG | 和差信号（保留） |
-| 0x25 | 37 | IQ | 保留（GPS占位） |
-| 0x26 | 38 | DDCDEM | DDC解调 |
-| 0x27 | 39 | SSDF | 空间谱测向 |
-| 0x28 | 40 | MULTICHAN | 多信道监听 |
-| 0x29 | 41 | ACDF | 旋转云台 |
-| 0x2A | 42 | VIDEO | 视频 |
-| 0x2B | 43 | DEMREC | 调制模式识别 |
-| 0x2C | 44 | MULCHANANA | 双/多信道分析 |
-| 0x2D | 45 | SJAM | 信号压制 |
-| 0x2E | 46 | ANALOGTV | 模拟电视 |
-| 0x2F | 47 | DIGITALTV | 数字电视 |
-| 0x30 | 48 | TVBMP | 电视图像 |
-| 0x31 | 49 | DPX | 荧光谱 |
-| 0x32 | 50 | CAMERA | 摄像头 |
-| 0x33 | 51 | FREQMEAS | 频点分析 |
+| ID (Hex) | ID (Dec) | 类型名称       | 说明          |
+|:--------:|:--------:| ---------- | ----------- |
+| 0x0A     | 10       | SGLFREQ    | 单频测量        |
+| 0x0B     | 11       | IFANALYSIS | 中频分析        |
+| 0x0C     | 12       | DF         | 单频测向        |
+| 0x0D     | 13       | IFDF       | 中频测向        |
+| 0x0E     | 14       | MSACN      | 离散扫描        |
+| 0x0F     | 15       | FSCAN      | 频段扫描        |
+| 0x10     | 16       | DSCAN      | 数字扫描        |
+| 0x11     | 17       | PSCAN      | 频谱扫描（保留）    |
+| 0x12     | 18       | SPANALYSIS | 频谱分析        |
+| 0x13     | 19       | TDANALYSIS | 时域分析        |
+| 0x14     | 20       | DFSEARCH   | 搜索测向        |
+| 0x15     | 21       | SCANDF     | 频率测向        |
+| 0x16     | 22       | MSEARCH    | 离散信号搜索      |
+| 0x17     | 23       | FSEARCH    | 频段信号搜索      |
+| 0x18     | 24       | ITU        | ITU测量       |
+| 0x19     | 25       | WBMONDF    | 宽带监测测向      |
+| 0x1A     | 26       | IFDFEXT    | 中频宽带测向      |
+| 0x1B     | 27       | FHOP       | 跳频监测        |
+| 0x1C     | 28       | WMON       | 宽带监测        |
+| 0x1D     | 29       | DIGDEM     | IQ数字解调      |
+| 0x1E     | 30       | BSCAN      | 宽带扫描        |
+| 0x1F     | 31       | EDETN      | 能量探测        |
+| 0x20     | 32       | DDF        | 离散测向        |
+| 0x21     | 33       | SIGNALMEAS | 信号测量（TCI特殊） |
+| 0x22     | 34       | MODREC     | 信号识别（黑鸟系统）  |
+| 0x23     | 35       | SINA       | 信号告警（黑鸟系统）  |
+| 0x24     | 36       | SMSG       | 和差信号（保留）    |
+| 0x25     | 37       | IQ         | 保留（GPS占位）   |
+| 0x26     | 38       | DDCDEM     | DDC解调       |
+| 0x27     | 39       | SSDF       | 空间谱测向       |
+| 0x28     | 40       | MULTICHAN  | 多信道监听       |
+| 0x29     | 41       | ACDF       | 旋转云台        |
+| 0x2A     | 42       | VIDEO      | 视频          |
+| 0x2B     | 43       | DEMREC     | 调制模式识别      |
+| 0x2C     | 44       | MULCHANANA | 双/多信道分析     |
+| 0x2D     | 45       | SJAM       | 信号压制        |
+| 0x2E     | 46       | ANALOGTV   | 模拟电视        |
+| 0x2F     | 47       | DIGITALTV  | 数字电视        |
+| 0x30     | 48       | TVBMP      | 电视图像        |
+| 0x31     | 49       | DPX        | 荧光谱         |
+| 0x32     | 50       | CAMERA     | 摄像头         |
+| 0x33     | 51       | FREQMEAS   | 频点分析        |
 
 ### 4.2 业务数据描述头
 
@@ -302,6 +302,7 @@ typedef struct tagRmcpBusinessHead
 **静态部分：** nBdType=20, nArrays, DataType {0,1,2,3}
 
 **动态部分（按DataType）：**
+
 - DataType=1：频率, 带宽, IFBW
 - DataType=2：DfLevel, Qulity, Azumith, Elevation, Compass, occ, thr
 - DataType=3：Centerlevel, LevelCount, value[]
@@ -317,6 +318,7 @@ typedef struct tagRmcpBusinessHead
 **静态部分：** nBdType=22, nArrays, ArrayDataType {0,1}
 
 **动态部分（按ArrayDataType）：**
+
 - ArrayDataType=0：value（short level）
 - ArrayDataType=1：span, Ifbw, value（频谱曲线，无噪声/占用度）
 
@@ -333,6 +335,7 @@ typedef struct tagRmcpBusinessHead
 ##### WBMONDF（宽带监测测向）- 类型25
 
 **静态部分：** nBdType=25, Headtype {0,1,2}
+
 - Headtype=0：全景频段头
 - Headtype=1：部分测向头
 - Headtype=2：中频频谱头
@@ -351,37 +354,38 @@ typedef struct tagRmcpBusinessHead
 
 **静态部分：**
 
-| 字段 | 类型 | 长度 | 说明 |
-|------|------|:----:|------|
-| nBdType | byte | 1 | 业务数据类型 = 30 |
-| nArrays | long | 4 | 扫描段数 |
-| level | float | 4 | 参考电平 |
-| unit | char[10] | 10 | 参考电平单位 |
-| nResultNum | long | 4 | 扩展数据数 = 9 |
+| 字段         | 类型       | 长度  | 说明          |
+| ---------- | -------- |:---:| ----------- |
+| nBdType    | byte     | 1   | 业务数据类型 = 30 |
+| nArrays    | long     | 4   | 扫描段数        |
+| level      | float    | 4   | 参考电平        |
+| unit       | char[10] | 10  | 参考电平单位      |
+| nResultNum | long     | 4   | 扩展数据数 = 9   |
 
 **扩展数据标识（9组，每组20字节）：**
 
-| 偏移 | 名称 | 单位 |
-|-----:|------|------|
-| 0-19 | TimeSymbol | s |
-| 20-39 | FreqSymbol | Hz |
-| 40-59 | RbwSymbol | Hz |
-| 60-79 | AlarmsnrSymbol | dB |
-| 80-99 | AlarmsRateSymbol | kHz |
-| 100-119 | AlarmdevSymbol | kHz |
-| 120-139 | ModemSymbol | - |
-| 140-159 | AlarmconSymbol | % |
-| 160-179 | PreciousTimeSymbol | s |
+| 偏移      | 名称                 | 单位  |
+| -------:| ------------------ | --- |
+| 0-19    | TimeSymbol         | s   |
+| 20-39   | FreqSymbol         | Hz  |
+| 40-59   | RbwSymbol          | Hz  |
+| 60-79   | AlarmsnrSymbol     | dB  |
+| 80-99   | AlarmsRateSymbol   | kHz |
+| 100-119 | AlarmdevSymbol     | kHz |
+| 120-139 | ModemSymbol        | -   |
+| 140-159 | AlarmconSymbol     | %   |
+| 160-179 | PreciousTimeSymbol | s   |
 
 **动态部分：**
 
-| 字段 | 类型 | 长度 | 说明 |
-|------|------|:----:|------|
-| nStartFreq | float | 4 | 开始频率 |
-| nStopFreq | float | 4 | 结束频率 |
-| rbw | float | 4 | 带宽 |
+| 字段         | 类型    | 长度  | 说明   |
+| ---------- | ----- |:---:| ---- |
+| nStartFreq | float | 4   | 开始频率 |
+| nStopFreq  | float | 4   | 结束频率 |
+| rbw        | float | 4   | 带宽   |
 
 **业务数据格式（dataType）：**
+
 - dataType=0：fStartFreq, fStopFreq, Overlap, value[]
 - dataType=1：AlarmDesc[32], confidence, subtime
 
@@ -389,31 +393,31 @@ typedef struct tagRmcpBusinessHead
 
 **静态部分：**
 
-| 字段 | 类型 | 长度 | 说明 |
-|------|------|:----:|------|
-| nBdType | byte | 1 | 业务数据类型 = 31 |
-| nArrays | long | 4 | 扫描段数 |
-| level | float | 4 | 参考电平 |
-| unit | char[10] | 10 | 参考电平单位 |
-| nResultNum | long | 4 | 扩展数据数 = 5 |
+| 字段         | 类型       | 长度  | 说明          |
+| ---------- | -------- |:---:| ----------- |
+| nBdType    | byte     | 1   | 业务数据类型 = 31 |
+| nArrays    | long     | 4   | 扫描段数        |
+| level      | float    | 4   | 参考电平        |
+| unit       | char[10] | 10  | 参考电平单位      |
+| nResultNum | long     | 4   | 扩展数据数 = 5   |
 
 **扩展数据标识（5组，每组20字节）：**
 
-| 偏移 | 名称 | 单位 |
-|-----:|------|------|
-| 0-19 | TimeSymbol | s |
-| 20-39 | FreqSymbol | Hz |
-| 40-59 | RbwSymbol | Hz |
-| 60-79 | alarmamplSymbol | dBm |
-| 80-99 | PreciousTimeSymbol | s |
+| 偏移    | 名称                 | 单位  |
+| -----:| ------------------ | --- |
+| 0-19  | TimeSymbol         | s   |
+| 20-39 | FreqSymbol         | Hz  |
+| 40-59 | RbwSymbol          | Hz  |
+| 60-79 | alarmamplSymbol    | dBm |
+| 80-99 | PreciousTimeSymbol | s   |
 
 **动态部分：**
 
-| 字段 | 类型 | 长度 | 说明 |
-|------|------|:----:|------|
-| nStartFreq | float | 4 | 开始频率 |
-| nStopFreq | float | 4 | 结束频率 |
-| rbw | float | 4 | 带宽 |
+| 字段         | 类型    | 长度  | 说明   |
+| ---------- | ----- |:---:| ---- |
+| nStartFreq | float | 4   | 开始频率 |
+| nStopFreq  | float | 4   | 结束频率 |
+| rbw        | float | 4   | 带宽   |
 
 **业务数据格式：** 同 WMON（dataType {0,1}）
 
@@ -421,13 +425,13 @@ typedef struct tagRmcpBusinessHead
 
 **静态部分：**
 
-| 字段 | 类型 | 长度 | 说明 |
-|------|------|:----:|------|
-| nBdType | byte | 1 | 业务数据类型 = 35 |
-| nArrays | long | 4 | 扫描段数 |
-| level | float | 4 | 参考电平 |
-| unit | char[10] | 10 | 参考电平单位 |
-| nResultNum | long | 4 | 扩展数据数 = 9 |
+| 字段         | 类型       | 长度  | 说明          |
+| ---------- | -------- |:---:| ----------- |
+| nBdType    | byte     | 1   | 业务数据类型 = 35 |
+| nArrays    | long     | 4   | 扫描段数        |
+| level      | float    | 4   | 参考电平        |
+| unit       | char[10] | 10  | 参考电平单位      |
+| nResultNum | long     | 4   | 扩展数据数 = 9   |
 
 **扩展数据标识：** 同 WMON（9组）
 
@@ -437,16 +441,16 @@ typedef struct tagRmcpBusinessHead
 
 **静态部分：**
 
-| 字段 | 类型 | 长度 | 说明 |
-|------|------|:----:|------|
-| nBdType | byte | 1 | 业务数据类型 = 34 |
-| nArrays | long | 4 | = 0 |
-| level | float | 4 | 参考电平 |
-| unit | char[10] | 10 | 参考电平单位 |
-| nResultNum | long | 4 | 扩展数据数 = 9 |
-| nCentFreq | __int64 | 8 | 中心频率 |
-| nSpan | __int64 | 8 | 跨距 |
-| nIFBW | __int64 | 8 | 带宽 |
+| 字段         | 类型       | 长度  | 说明          |
+| ---------- | -------- |:---:| ----------- |
+| nBdType    | byte     | 1   | 业务数据类型 = 34 |
+| nArrays    | long     | 4   | = 0         |
+| level      | float    | 4   | 参考电平        |
+| unit       | char[10] | 10  | 参考电平单位      |
+| nResultNum | long     | 4   | 扩展数据数 = 9   |
+| nCentFreq  | __int64  | 8   | 中心频率        |
+| nSpan      | __int64  | 8   | 跨距          |
+| nIFBW      | __int64  | 8   | 带宽          |
 
 **业务数据格式：** 同 WMON（dataType {0,1}），dataType=1时 AlarmDesc[32] 为调制类型描述
 
@@ -459,6 +463,7 @@ typedef struct tagRmcpBusinessHead
 ##### SSDF（空间谱测向）- 类型39
 
 **静态部分：** nBdType=39, nArrays, nType {0,1}
+
 - nType=0：测向数据（nMonLevel, compass, DfLevel, Qulity, Azumith, Elevation）
 - nType=1：频谱数据（nLevel数组）
 
@@ -467,6 +472,7 @@ typedef struct tagRmcpBusinessHead
 **静态部分：** nBdType=40, nArrays, nOffset, nCdType {0,2}
 
 **动态部分：**
+
 - nCdType=0：监测数据（freq, Level, value[]）
 - nCdType=2：音频数据（AudioData）
 
@@ -477,6 +483,7 @@ typedef struct tagRmcpBusinessHead
 ##### DEMREC（调制模式识别）- 类型43
 
 **静态部分：** nBdType=43, nArrays, cType {0,1,2,3,4}
+
 - cType=0：频谱数据
 - cType=1：ITU数据
 - cType=2：调制识别数据（char数组）
@@ -485,26 +492,27 @@ typedef struct tagRmcpBusinessHead
 
 **调制方式类型（SignalType_HG 枚举）：**
 
-| 值 | 调制方式 |
-|:--:|----------|
-| 0 | CW |
-| 1 | 2ASK |
-| 2 | 4ASK |
-| 3 | BPSK |
-| 4 | QPSK |
-| 5 | OQPSK |
-| 6 | Unknown |
-| 7 | 2FSK |
-| 8 | 4FSK |
-| 9 | 8FSK |
-| 10 | 16/64/256QAM |
-| 11 | FM |
-| 12 | AM |
-| 13 | PI_4_QPSK |
+| 值   | 调制方式         |
+|:---:| ------------ |
+| 0   | CW           |
+| 1   | 2ASK         |
+| 2   | 4ASK         |
+| 3   | BPSK         |
+| 4   | QPSK         |
+| 5   | OQPSK        |
+| 6   | Unknown      |
+| 7   | 2FSK         |
+| 8   | 4FSK         |
+| 9   | 8FSK         |
+| 10  | 16/64/256QAM |
+| 11  | FM           |
+| 12  | AM           |
+| 13  | PI_4_QPSK    |
 
 ##### MULCHANANA（双/多信道分析）- 类型44
 
 **静态部分：** nBdType=44, nArrays, cType {0,1,2}
+
 - cType=0：频谱数据（channel byte + level + value[]）
 - cType=1：ITU数据（channel byte + value[]）
 - cType=2：调制识别（channel byte + confidence + char）
@@ -521,25 +529,25 @@ typedef struct tagRmcpBusinessHead
 
 **FLAGS 位定义（32位）：**
 
-| 位 | 字段 |
-|:--:|------|
-| 0 | 信道号 |
-| 1 | 中心频率 |
-| 2 | 电平 |
-| 3 | 场强 |
-| 4 | 测向电平 |
-| 5 | 测向角度 |
-| 6 | 测向质量 |
-| 7 | 仰角 |
-| 8 | 指南针 |
-| 9 | ITU测量结果 |
-| 10 | IQ数据 |
-| 11 | 调制方式识别 |
-| 12 | GPS结果 |
-| 13 | TDOA结果 |
-| 14 | 频谱 |
-| 15 | 此包含描述头 |
-| 16-31 | 保留 |
+| 位     | 字段      |
+|:-----:| ------- |
+| 0     | 信道号     |
+| 1     | 中心频率    |
+| 2     | 电平      |
+| 3     | 场强      |
+| 4     | 测向电平    |
+| 5     | 测向角度    |
+| 6     | 测向质量    |
+| 7     | 仰角      |
+| 8     | 指南针     |
+| 9     | ITU测量结果 |
+| 10    | IQ数据    |
+| 11    | 调制方式识别  |
+| 12    | GPS结果   |
+| 13    | TDOA结果  |
+| 14    | 频谱      |
+| 15    | 此包含描述头  |
+| 16-31 | 保留      |
 
 ### 4.3 业务数据
 
@@ -560,13 +568,13 @@ typedef struct tagRmcpBusinessData
 
 **业务数据标志（nFlags）位 0-15：**
 
-| 位 | 说明 |
-|:--:|------|
-| 0 | 基础业务数据 |
-| 1 | 自动噪声数据 |
-| 2 | 占用度数据 |
-| 3 | 手动噪声数据 |
-| 4-15 | 保留 |
+| 位    | 说明     |
+|:----:| ------ |
+| 0    | 基础业务数据 |
+| 1    | 自动噪声数据 |
+| 2    | 占用度数据  |
+| 3    | 手动噪声数据 |
+| 4-15 | 保留     |
 
 #### 4.3.1 各业务数据详情
 
