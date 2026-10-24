@@ -35,7 +35,7 @@ UQIDAQAB
 
 LICENSE_FILENAME = 'license.dat'
 MATCH_REQUIRED = 2
-MATCH_KEYS = ('motherboard', 'disk', 'cpu', 'mac')
+MATCH_KEYS = ('motherboard', 'disk', 'cpu', 'mac', 'volume')
 
 # 缓存公钥对象
 _public_key = serialization.load_pem_public_key(_PUBLIC_KEY_PEM)

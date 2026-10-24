@@ -13,7 +13,7 @@ import hashlib
 import hmac
 import os
 import struct
-from typing import Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
@@ -74,7 +74,7 @@ def _fingerprint_key(fingerprint: Dict[str, Optional[str]]) -> str:
     """将指纹字典转为确定性字符串（用于密钥派生）"""
     items = sorted(
         (k, v or "") for k, v in fingerprint.items()
-        if k in ("motherboard", "disk", "cpu", "mac")
+        if k in ("motherboard", "disk", "cpu", "mac", "volume")
     )
     return "|".join(f"{k}={v}" for k, v in items)
 
@@ -224,19 +224,67 @@ def save_license_v2(
         f.write(LICENSE_V2_MAGIC + encrypted)
 
 
+def _candidate_fingerprints(
+    fingerprint: Dict[str, Optional[str]],
+) -> List[Dict[str, Optional[str]]]:
+    """生成候选指纹集合
+
+    许可证密钥由指纹派生，因此任意一项标识符本次采集失败（WMIC/WMI 抽风、
+    驱动不暴露序列号、PS 超时……）都会导致解不开许可证、被迫重新激活。
+
+    这里为每一项易变标识符生成"该项为 None"的变体，解密时逐个尝试：
+    键的派生只依赖各字段是否为空，语义与"采集时就是空"完全一致，
+    不降低绑定强度（攻击者仍需正确的硬件指纹才能解出明文）。
+
+    另外生成"旧版指纹方案"（不含 volume 字段）的候选，
+    保证升级前签发的许可证无需重新激活。
+    """
+    candidates: List[Dict[str, Optional[str]]] = []
+    seen = set()
+
+    def add(fp: Dict[str, Optional[str]]) -> None:
+        marker = tuple(sorted((k, v or '') for k, v in fp.items()))
+        if marker not in seen:
+            seen.add(marker)
+            candidates.append(fp)
+
+    def expand(base: Dict[str, Optional[str]]) -> None:
+        add(base)
+        for key in ('disk', 'volume', 'motherboard', 'cpu', 'mac'):
+            if base.get(key) is not None:
+                variant = dict(base)
+                variant[key] = None
+                add(variant)
+        if base.get('disk') is not None and base.get('volume') is not None:
+            variant = dict(base)
+            variant['disk'] = None
+            variant['volume'] = None
+            add(variant)
+
+    expand(fingerprint)
+    legacy = {k: v for k, v in fingerprint.items() if k != 'volume'}
+    if legacy != fingerprint:
+        expand(legacy)
+    return candidates
+
+
 def load_license_v2(
     path: str,
     fingerprint: Dict[str, Optional[str]],
     master_key: Optional[bytes] = None,
 ) -> Optional[bytes]:
-    """加载并解密 V2 许可证"""
+    """加载并解密 V2 许可证（容忍单项指纹临时采集失败）"""
     if not os.path.exists(path):
         return None
     with open(path, "rb") as f:
         data = f.read()
     if not data.startswith(LICENSE_V2_MAGIC):
         return None
-    return decrypt_license_data(data[2:], fingerprint, master_key)
+    for candidate in _candidate_fingerprints(fingerprint):
+        raw = decrypt_license_data(data[2:], candidate, master_key)
+        if raw is not None:
+            return raw
+    return None
 
 
 def is_v2_format(path: str) -> bool:

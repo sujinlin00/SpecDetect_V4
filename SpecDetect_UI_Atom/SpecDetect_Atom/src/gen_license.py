@@ -48,7 +48,7 @@ def show_fingerprint():
     fp = collect_fingerprint()
     hashed = hash_fingerprint(fp)
     print('当前设备硬件指纹：')
-    for key in ('motherboard', 'disk', 'cpu', 'mac'):
+    for key in ('motherboard', 'disk', 'cpu', 'mac', 'volume'):
         raw = fp.get(key) or 'N/A'
         h = hashed.get(key)
         h_display = f'SHA256:{h[:16]}...' if h else '不可用'
@@ -154,7 +154,7 @@ def main():
         hostname = args.name or __import__('socket').gethostname()
         print(f'设备名: {hostname}')
         print('已注册硬件指纹 (SHA256):')
-        for key in ('motherboard', 'disk', 'cpu', 'mac'):
+        for key in ('motherboard', 'disk', 'cpu', 'mac', 'volume'):
             h = current_fp.get(key)
             h_display = f'{h[:32]}...' if h else '不可用（硬件信息获取失败）'
             print(f'  {key}: {h_display}')
